@@ -1,0 +1,71 @@
+# Copyright (C) 2010 Erik Rainey
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+ifeq ($($(_MODULE)_TYPE),jar)
+
+JAR := jar
+JC  := javac
+
+###############################################################################
+
+$(_MODULE)_BIN		 := $($(_MODULE)_TDIR)/$(TARGET).jar
+$(_MODULE)_CLASSES   := $(patsubst %.java,%.class,$(JSOURCES))
+$(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$($(_MODULE)_ODIR)/$(cls))
+ifdef CLASSPATH
+$(_MODULE)_CLASSPATH := -classpath $(CLASSPATH)
+CLASSPATH 			 :=
+else
+$(_MODULE)_CLASSPATH :=
+endif
+$(_MODULE)_CLEAN_OBJ := $(CLEAN) $($(_MODULE)_OBJS)
+$(_MODULE)_CLEAN_BIN := $(CLEAN) $($(_MODULE)_BIN)
+JC_OPTS             := -deprecation -verbose $($(_MODULE)_CLASSPATH) -sourcepath $($(_MODULE)_SDIR) -d $($(_MODULE)_ODIR)
+ifdef DEBUG
+JC_OPTS             += -g
+endif
+ifdef MANIFEST
+$(_MODULE)_MANIFEST := -m $(MANIFEST)
+MANIFEST			:=
+else
+$(_MODULE)_MANIFEST :=
+endif
+ifdef ENTRY
+$(_MODULE)_ENTRY    := $(ENTRY)
+ENTRY				:=
+else
+$(_MODULE)_ENTRY    := Main
+endif
+JAR_OPTS            := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) $(foreach cls,$($(_MODULE)_CLASSES),-C $($(_MODULE)_ODIR) $(cls))
+
+###############################################################################
+
+
+define $(_MODULE)_DEPEND_CLS
+$($(_MODULE)_ODIR)/$(1).class: $($(_MODULE)_SDIR)/$(1).java $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_ODIR)/.gitignore
+	@echo Compiling Java $(1).java
+	$(Q)$(JC) $(JC_OPTS) $($(_MODULE)_SDIR)/$(1).java
+endef
+
+define $(_MODULE)_DEPEND_JAR
+uninstall::
+
+install:: $($(_MODULE)_BIN)
+
+$($(_MODULE)_BIN): $($(_MODULE)_OBJS)
+	@echo Jar-ing Classes $($(_MODULE)_CLASSES)
+	$(Q)$(JAR) $(JAR_OPTS)
+endef
+
+endif
+
