@@ -1,0 +1,24 @@
+Concerto is a simple 1 pass Makefile system. 
+
+When you want to use Concerto, simply create a Makefile at the top of you project, and enter this inside it:
+
+include $(CONCERTO_FOLDER)/rules.mak
+
+Individual Concerto Build sub-makefiles look like this:
+
+_MODULE=<optional module name>
+include $(PRELUDE)
+TARGET=<name of the object created>
+TARGETTYPE=<exe|library|dsmo|prebuilt|jar>
+CSOURCES=<list of C files>
+CPPSOURCES=<list of C++ files>
+ASSEMBLY=<list of .S Files>
+IDIRS+=<include directories>
+DEFS+=<defines>
+STATIC_LIBS=<static libraries within the build system>
+SHARED_LIBS=<shared libraries within the build system>
+SYS_STATIC_LIBS=<static libraries outside the build system>
+SYS_SHARED_LIBS=<shared libraries outside the build system>
+include $(FINALE)
+
+You can then modify target.mak to reflect the specific needs of you build system. 
