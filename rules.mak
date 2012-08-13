@@ -18,16 +18,14 @@ all::
 
 # Define our pathing
 HOST_ROOT?=$(abspath .)
-
 $(info HOST_ROOT=$(HOST_ROOT))
 
-ifndef BUILD_FOLDER
-BUILD_FOLDER:=concerto
-endif
+BUILD_FOLDER?=concerto
 
 include $(HOST_ROOT)/$(BUILD_FOLDER)/os.mak
 include $(HOST_ROOT)/$(BUILD_FOLDER)/machine.mak
 include $(HOST_ROOT)/$(BUILD_FOLDER)/target.mak
+include $(HOST_ROOT)/$(BUILD_FOLDER)/shell.mak
 
 # Define the prelude and finale files so that SUBMAKEFILEs know what they are
 # And if the users go and make -f concerto.mak then it will not work right.
@@ -56,17 +54,17 @@ endif
 $(info TARGET_BUILD=$(TARGET_BUILD))
 
 # If no directories were specified, then assume "source"
-ifeq ($(DIRECTORIES),)
-DIRECTORIES:=source
-endif
+DIRECTORIES?=source
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
 ifeq ($(HOST_OS),Windows_NT)
-TARGET_MAKEFILES:=$(foreach dir,$(DIRECTORIES),$(shell cd $(dir) && dir /b /s $(SUBMAKEFILE)))
+TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell cd $(d) && cmd.exe /C dir /b /s $(SUBMAKEFILE)))
 else
-TARGET_MAKEFILES:=$(foreach dir,$(DIRECTORIES),$(shell find $(dir)/ -name $(SUBMAKEFILE)))
+TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell find $(d)/ -name $(SUBMAKEFILE)))
 endif
-#$(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
+ifdef BUILD_DEBUG
+$(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
+endif
 
 # Create the MODULES list by parsing the makefiles.
 MODULES:=
@@ -89,13 +87,13 @@ uninstall::
 targets::
 	@echo TARGETS=$(MODULES)
 
-scrub:
+scrub::
 ifeq ($(HOST_OS),Windows_NT)
-	@echo [ROOT] Deleting $(HOST_ROOT)\out\$(TARGET_OS)\$(TARGET_CPU)\$(TARGET_BUILD)
-	-@$(CLEAN) $(call PATH_CONV,$(HOST_ROOT))\out\$(TARGET_OS)\$(TARGET_CPU)
+	@echo [ROOT] Deleting $(HOST_ROOT)\out\$(TARGET_OS)\$(TARGET_CPU)
+	-$(Q)$(CLEANDIR) $(call PATH_CONV,$(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU))
 else
-	@echo [ROOT] Deleting $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
-	-@$(CLEANDIR) $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)
+	@echo [ROOT] Deleting $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)
+	-$(Q)$(CLEANDIR) $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)
 endif
 
 vars:: $(foreach mod,$(MODULES),$(mod)_vars)

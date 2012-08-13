@@ -12,10 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#$(info Including Definitions)
-all-type-files = $(notdir $(wildcard $($(_MODULE)_SDIR)/$(1)))
-all-java-files = $(call all-type-files,*.java)
-all-c-files    = $(call all-type-files,*.c)
-all-cpp-files  = $(call all-type-files,*.cpp)
-all-h-files    = $(call all-type-files,*.h)
+ifeq ($(HOST_OS),Windows_NT) # cmd.exe
+CLEAN    := cmd.exe /C del /Q
+CLEANDIR := cmd.exe /C del /Q /S
+COPY     := cmd.exe /C copy /Y /Z /V
+PRINT    := cmd.exe /C echo
+SET_RW   := cmd.exe /C attrib -R
+SET_EXEC := cmd.exe /C echo
+LINK     := cmd.exe /C junction
+TOUCH    := cmd.exe /C type NUL > 
+INSTALL	 := cmd.exe /C copy /Y /Z /V
+else # Bash variants
+CLEAN    := rm -fv
+CLEANDIR := rm -rfv
+COPY     := cp -f
+PRINT    := echo
+SET_RW   := chmod a+rw
+SET_EXEC := chmod a+x
+LINK     := ln -s -f
+TOUCH    := touch 
+INSTALL  := install -C -m 755
+endif
 

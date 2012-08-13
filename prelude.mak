@@ -97,7 +97,7 @@ MODULES+=$(_MODULE)
 
 # Define the Path to the Source Files (always use the directory) and Header Files
 $(_MODULE)_SDIR := $(HOST_ROOT)/$(_MODPATH)
-$(_MODULE)_IDIRS:= $(HOST_ROOT)/include $($(_MODULE)_SDIR)
+$(_MODULE)_IDIRS:= $($(_MODULE)_SDIR)
 
 # Route the output for each module into it's own folder
 $(_MODULE)_ODIR := $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)/module_$(_MODULE)
@@ -126,12 +126,12 @@ endif
 # Define a ".gitignore" file which will help in making sure the module's output folder always exists.
 $($(_MODULE)_ODIR)/.gitignore:
 ifeq ($(HOST_OS),Windows_NT)
-	-@echo Making $@
-	-$(Q)mkdir $(subst /,\,$(patsubst %/.gitignore,%,$@))
-	-$(Q)echo > $(subst /,\,$@)
+	-@echo Making $(call PATH_CONV,$(dir $@))
+	-$(shell mkdir $(call PATH_CONV,$(dir $@)))
+	-$(TOUCH) $@
 else
 	-$(Q)mkdir -p $(patsubst %/.gitignore,%,$@)
-	-$(Q)touch $@
+	-$(Q)$(TOUCH) $@
 endif
 
 dir:: $($(_MODULE)_ODIR)/.gitignore
@@ -139,6 +139,8 @@ dir:: $($(_MODULE)_ODIR)/.gitignore
 # Clean out common vars
 ENTRY :=
 DEFS :=
+CFLAGS :=
+LDFLAGS :=
 STATIC_LIBS :=
 SHARED_LIBS :=
 SYS_STATIC_LIBS :=
@@ -150,6 +152,10 @@ CPPSOURCES :=
 ASSEMBLY :=
 TARGET :=
 TARGETTYPE :=
+BINS :=
+INCS :=
+INC_SUBPATH :=
+HEADERS :=
 
 # Define a local path for this module's folder that we're processing...
 THIS := $($(_MODULE)_SDIR)

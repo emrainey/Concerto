@@ -1,4 +1,4 @@
-# Copyright (C) 2010 Erik Rainey
+# Copyright (C) 2011 Erik Rainey
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +13,11 @@
 # limitations under the License.
 
 ifeq ($(TARGET_CPU),$(HOST_CPU))
-	CROSS_COMPILE:=
+	CROSS_COMPILE=
 endif
 
-ifeq ($(TARGET_CPU),X86)
-	CROSS_COMPILE:=
-endif
-
-CC = $(CROSS_COMPILE)gcc
-CP = $(CROSS_COMPILE)g++
+CC = $(CROSS_COMPILE)clang
+CP = $(CROSS_COMPILE)clang++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
 LD = $(CROSS_COMPILE)gcc
@@ -61,23 +57,24 @@ $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+$(_MODULE)_DEP_HEADERS := $(foreach inc,$($(_MODULE)_HEADERS),$($(_MODULE)_SDIR)/$(inc).h)
 
-#$(_MODULE)_COPT := $(CFLAGS)
-#$(_MODULE)_LOPT := $(LDFLAGS)
+$(_MODULE)_COPT := $(CFLAGS)
+$(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -fms-extensions -Wno-write-strings
+$(_MODULE)_COPT += -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
-$(_MODULE)_COPT += -O0 -ggdb -ggdb3 -Q
+$(_MODULE)_COPT += -O0 -ggdb3
 $(_MODULE)_LOPT += -g
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3
 endif
 
 ifeq ($(TARGET_CPU),ARM)
-$(_MODULE)_COPT += -marm -mapcs -mno-sched-prolog -mno-thumb-interwork
+$(_MODULE)_COPT += -mapcs -mno-sched-prolog -mno-thumb-interwork
 ifeq ($(TARGET_OS),LINUX)
 $(_MODULE)_COPT += -mabi=aapcs-linux
 endif
@@ -96,7 +93,7 @@ $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-D$(def))
 $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) $(foreach lib,$(STATIC_LIBS),-l$(lib)) $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) $(foreach lib,$(SHARED_LIBS),-l$(lib)) $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib))
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
 ifeq ($(HOST_OS),DARWIN)
-$(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU) $(LDFLAGS)
+$(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU)
 endif
 $(_MODULE)_LDFLAGS  += $($(_MODULE)_LOPT)
 $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf)) $($(_MODULE)_COPT)
@@ -109,6 +106,7 @@ endif
 ###################################################
 # COMMANDS
 ###################################################
+
 ifneq ($(TARGET_OS),CYGWIN)
 EXPORT_FLAG:=--export-dynamic
 else
@@ -128,14 +126,10 @@ $(_MODULE)_INSTALL_EXE:= $(INSTALL) $($(_MODULE)_BIN) $($(_MODULE)_INSTALL_BIN)
 $(_MODULE)_UNINSTALL_EXE:=$(CLEAN) $($(_MODULE)_INSTALL_BIN)/$($(_MODULE)_OUT)
 $(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
 ifeq ($(TARGET_OS),DARWIN)
-$(_MODULE)_LINK_DSO   := $(LD) -dynamiclib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS)
+$(_MODULE)_LINK_DSO   := $(LD) -dylib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS)
 $(_MODULE)_LINK_EXE   := $(CP) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
 else
-ifeq ($(TARGET_PLATFORM), PANDA)
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -soname,$($(_MODULE)_BIN).1.0 -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) $($(_MODULE)_MAP)
-else
 $(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$($(_MODULE)_BIN).1.0 -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) $($(_MODULE)_MAP)
-endif
 $(_MODULE)_LINK_EXE   := $(CP) -rdynamic -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,$($(_MODULE)_MAP)
 endif
 
@@ -144,27 +138,9 @@ endif
 ###################################################
 
 define $(_MODULE)_DEPEND_CC
-
-$($(_MODULE)_ODIR)/$(1).d: $($(_MODULE)_SDIR)/$(1).c $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_ODIR)/.gitignore
-	@echo Generating  Dependency Info from $$(notdir $$<)
-	$(Q)$(CC) $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $$< -MM -MF $($(_MODULE)_ODIR)/$(1).d -MT '$($(_MODULE)_ODIR)/$(1).o:' $(LOGGING)
-
-depend:: $($(_MODULE)_ODIR)/$(1).d
-
--include $($(_MODULE)_ODIR)/$(1).d
-
 endef
 
 define $(_MODULE)_DEPEND_CP
-
-$($(_MODULE)_ODIR)/$(1).d: $($(_MODULE)_SDIR)/$(1).cpp $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_ODIR)/.gitignore
-	@echo Generating  Dependency Info from $$(notdir $$<)
-	$(Q)$(CC) $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $$< -MM -MF $($(_MODULE)_ODIR)/$(1).d -MT '$($(_MODULE)_ODIR)/$(1).o:' $(LOGGING)
-
-depend:: $($(_MODULE)_ODIR)/$(1).d
-
--include $($(_MODULE)_ODIR)/$(1).d
-
 endef
 
 define $(_MODULE)_DEPEND_AS

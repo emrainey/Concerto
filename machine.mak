@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#	   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(OS),Windows_NT)
-    ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+ifeq ($(HOST_OS),Windows_NT)
+    $(info Windows Processor Architecture $(PROCESSOR_ARCHITECTURE))
+    $(info Windows Processor Identification $(word 1, $(PROCESSOR_IDENTIFIER)))
+    TYPE=$(word 1, $(PROCESSOR_IDENTIFIER))
+    ifeq ($(TYPE),x86)
         HOST_CPU=X86
         HOST_ARCH=32
-    else
+    else ifeq ($(TYPE),Intel64)
         HOST_CPU=X64
         HOST_ARCH=64
+    else
+        $(error Unknown Processor Architecture on Windows!)
     endif
 else
     HOST_CPU=$(shell uname -m)
@@ -41,6 +46,9 @@ else
         HOST_CPU=X86
         HOST_ARCH=32
     else ifeq ($(HOST_CPU),ARM)
+        HOST_CPU=ARM
+        HOST_ARCH=32
+    else ifeq ($(HOST_CPU),armv7l)
         HOST_CPU=ARM
         HOST_ARCH=32
     endif

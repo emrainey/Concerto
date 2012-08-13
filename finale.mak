@@ -21,6 +21,14 @@ $(_MODULE)_STATIC_LIBS += $(STATIC_LIBS)
 $(_MODULE)_SHARED_LIBS += $(SHARED_LIBS)
 $(_MODULE)_SYS_STATIC_LIBS += $(SYS_STATIC_LIBS)
 $(_MODULE)_SYS_SHARED_LIBS += $(SYS_SHARED_LIBS)
+$(_MODULE)_BINS += $(BINS)
+$(_MODULE)_INCS += $(INCS)
+ifdef INC_SUBPATH
+$(_MODULE)_INC_SUBPATH := $(INC_SUBPATH)
+else
+$(_MODULE)_INC_SUBPATH := $(TARGET)
+endif
+$(_MODULE)_HEADERS := $(HEADERS)
 
 # Copy over the rest of the variables
 $(_MODULE)_TYPE := $(TARGETTYPE)
@@ -35,17 +43,32 @@ $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 
 ifndef SKIPBUILD
 
+NEEDS_COMPILER:=
+ifeq ($($(_MODULE)_TYPE),library)
+	NEEDS_COMPILER=1
+else ifeq ($($(_MODULE)_TYPE),dsmo)
+	NEEDS_COMPILER=1
+else ifeq ($($(_MODULE)_TYPE),exe)
+	NEEDS_COMPILER=1
+endif
+
+ifeq ($(NEEDS_COMPILER),1)
+
 ifeq ($(HOST_COMPILER),GCC)
 	include $(HOST_ROOT)/$(BUILD_FOLDER)/gcc.mak
+else ifeq ($(HOST_COMPILER),CLANG)
+	include $(HOST_ROOT)/$(BUILD_FOLDER)/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
 	include $(HOST_ROOT)/$(BUILD_FOLDER)/cl.mak
-else ifeq ($(HOST_COMPILER),CGT6X)
-	include $(HOST_ROOT)/$(BUILD_FOLDER)/cgt6x.mak
-else ifeq ($(HOST_COMPILER),QCC)
-	include $(HOST_ROOT)/$(BUILD_FOLDER)/qcc.mak
 endif
 
 include $(HOST_ROOT)/$(BUILD_FOLDER)/java.mak
+
+endif
+
+include $(HOST_ROOT)/$(BUILD_FOLDER)/opencl.mak
+include $(HOST_ROOT)/$(BUILD_FOLDER)/dpkg.mak
+include $(HOST_ROOT)/$(BUILD_FOLDER)/doxygen.mak
 
 else
 
@@ -118,17 +141,27 @@ else ifeq ($(strip $($(_MODULE)_TYPE)),jar)
 
 $(eval $(call $(_MODULE)_DEPEND_JAR))
 
+else ifeq ($(strip $($(_MODULE)_TYPE)),deb)
+
+$(eval $(call $(_MODULE)_PACKAGE))
+
+else ifeq ($(strip $($(_MODULE)_TYPE)),doxygen)
+
+$(eval $(call $(_MODULE)_DOCUMENTS))
+
 endif
 
 define $(_MODULE)_CLEAN
 .PHONY: clean_bin clean
 clean_target::
-	@echo Cleaning $($(_MODULE)_BIN)
+	@echo Cleaning $(_MODULE) target $($(_MODULE)_BIN)
 	-$(Q)$(call $(_MODULE)_CLEAN_BIN)
 
 clean:: clean_target
-	@echo Cleaning $($(_MODULE)_OBJS)
+ifneq ($($(_MODULE)_OBJS),)
+	@echo Cleaning objects $($(_MODULE)_OBJS)
 	-$(Q)$(call $(_MODULE)_CLEAN_OBJ)
+endif
 endef
 
 $(eval $(call $(_MODULE)_CLEAN))
@@ -161,5 +194,5 @@ endef
 $(eval $(call $(_MODULE)_VARDEF))
 
 # Now clear out the module variable for repeat definitions
-_MODULE := 
+_MODULE :=
 
