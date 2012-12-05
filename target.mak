@@ -14,8 +14,6 @@
 
 TARGET_PLATFORM ?= PC
 
-endif
-
 SYSIDIRS := $(HOST_ROOT)/include
 
 ifeq ($(TARGET_PLATFORM),PC)

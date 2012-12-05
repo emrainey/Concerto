@@ -161,4 +161,4 @@ HEADERS :=
 THIS := $($(_MODULE)_SDIR)
 
 # Pull in the definitions which will be redefined for this makefile
-include $(HOST_ROOT)/$(BUILD_FOLDER)/definitions.mak
+include $(CONCERTO_ROOT)/definitions.mak

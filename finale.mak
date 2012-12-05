@@ -55,20 +55,20 @@ endif
 ifeq ($(NEEDS_COMPILER),1)
 
 ifeq ($(HOST_COMPILER),GCC)
-	include $(HOST_ROOT)/$(BUILD_FOLDER)/gcc.mak
+	include $(CONCERTO_ROOT)/gcc.mak
 else ifeq ($(HOST_COMPILER),CLANG)
-	include $(HOST_ROOT)/$(BUILD_FOLDER)/clang.mak
+	include $(CONCERTO_ROOT)/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
-	include $(HOST_ROOT)/$(BUILD_FOLDER)/cl.mak
+	include $(CONCERTO_ROOT)/cl.mak
 endif
 
-include $(HOST_ROOT)/$(BUILD_FOLDER)/java.mak
+include $(CONCERTO_ROOT)/java.mak
 
 endif
 
-include $(HOST_ROOT)/$(BUILD_FOLDER)/opencl.mak
-include $(HOST_ROOT)/$(BUILD_FOLDER)/dpkg.mak
-include $(HOST_ROOT)/$(BUILD_FOLDER)/doxygen.mak
+include $(CONCERTO_ROOT)/opencl.mak
+include $(CONCERTO_ROOT)/dpkg.mak
+include $(CONCERTO_ROOT)/doxygen.mak
 
 else
 
