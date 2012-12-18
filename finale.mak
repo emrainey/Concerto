@@ -21,6 +21,7 @@ $(_MODULE)_STATIC_LIBS += $(STATIC_LIBS)
 $(_MODULE)_SHARED_LIBS += $(SHARED_LIBS)
 $(_MODULE)_SYS_STATIC_LIBS += $(SYS_STATIC_LIBS)
 $(_MODULE)_SYS_SHARED_LIBS += $(SYS_SHARED_LIBS)
+$(_MODULE)_JAVA_LIBS += $(JAVA_LIBS)
 $(_MODULE)_BINS += $(BINS)
 $(_MODULE)_INCS += $(INCS)
 ifdef INC_SUBPATH
@@ -49,6 +50,8 @@ ifeq ($($(_MODULE)_TYPE),library)
 else ifeq ($($(_MODULE)_TYPE),dsmo)
 	NEEDS_COMPILER=1
 else ifeq ($($(_MODULE)_TYPE),exe)
+	NEEDS_COMPILER=1
+else ifeq ($($(_MODULE)_TYPE),jar)
 	NEEDS_COMPILER=1
 endif
 
