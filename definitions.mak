@@ -18,4 +18,4 @@ all-java-files = $(call all-type-files,*.java)
 all-c-files    = $(call all-type-files,*.c)
 all-cpp-files  = $(call all-type-files,*.cpp)
 all-h-files    = $(call all-type-files,*.h)
-
+all-S-files    = $(call all-type-files,*.S)
