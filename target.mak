@@ -24,8 +24,8 @@ ifeq ($(TARGET_PLATFORM),PC)
         INSTALL_BIN := /usr/bin
         INSTALL_INC := /usr/include
         TARGET_NUM_CORES:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
-        SYSIDIRS := /usr/include
-        SYSLDIRS := /usr/lib
+        SYSIDIRS += /usr/include
+        SYSLDIRS += /usr/lib
         SYSDEFS+=_XOPEN_SOURCE=700 _BSD_SOURCE=1 _GNU_SOURCE=1
     else ifeq ($(TARGET_OS),DARWIN)
         INSTALL_LIB := /opt/local/lib

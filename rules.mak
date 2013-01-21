@@ -88,6 +88,13 @@ uninstall::
 targets::
 	@echo TARGETS=$(MODULES)
 
+out::
+ifeq ($(HOST_OS),Windows_NT)
+	@echo TARGET_OUT=$(HOST_ROOT)\out\$(TARGET_CPU)\$(TARGET_OS)
+else
+	@echo TARGET_OUT=$(HOST_ROOT)/out/$(TARGET_CPU)/$(TARGET_OS)
+endif
+
 scrub::
 ifeq ($(HOST_OS),Windows_NT)
 	@echo [ROOT] Deleting $(HOST_ROOT)\out\$(TARGET_OS)\$(TARGET_CPU)
