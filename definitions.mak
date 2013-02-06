@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#$(info Including Definitions)
 all-type-files = $(notdir $(wildcard $($(_MODULE)_SDIR)/$(1)))
 all-java-files = $(call all-type-files,*.java)
 all-c-files    = $(call all-type-files,*.c)

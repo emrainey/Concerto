@@ -54,6 +54,4 @@ else
     endif
 endif
 
-$(info HOST_CPU=$(HOST_CPU))
-$(info HOST_ARCH=$(HOST_ARCH))
 

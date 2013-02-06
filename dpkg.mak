@@ -20,7 +20,6 @@ PKG_EXT := .deb
 
 VARS=$(shell "dpkg-architecture")
 $(foreach var,$(VARS),$(if $(findstring DEB_BUILD_ARCH,$(var)),$(eval $(var))))
-$(info DEB_BUILD_ARCH=$(DEB_BUILD_ARCH))
 
 #$(info OUT=$($(_MODULE)_ODIR))
 

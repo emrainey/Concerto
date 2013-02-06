@@ -15,6 +15,8 @@
 TARGET_PLATFORM ?= PC
 
 SYSIDIRS := $(HOST_ROOT)/include
+SYSLDIRS :=
+SYSDEFS  :=
 
 ifeq ($(TARGET_PLATFORM),PC)
     TARGET_OS=$(HOST_OS)
@@ -38,8 +40,6 @@ ifeq ($(TARGET_PLATFORM),PC)
         INSTALL_BIN := /usr/bin
         INSTALL_INC := /usr/include
         TARGET_NUM_CORES ?= 2
-        SYSIDIRS+=/usr/include
-        SYSLDIRS+=/usr/libs
         SYSDEFS+=_XOPEN_SOURCE=700 _BSD_SOURCE=1 _GNU_SOURCE=1 WINVER=0x501
     else ifeq ($(TARGET_OS),Windows_NT)
         INSTALL_LIB := "${windir}\\system32"
@@ -79,7 +79,9 @@ TARGET_ARCH?=32
 
 SYSDEFS+=ARCH_$(TARGET_ARCH)
 
-$(info TARGET_OS=$(TARGET_OS))
-$(info TARGET_CPU=$(TARGET_CPU))
-$(info TARGET_PLATFORM=$(TARGET_PLATFORM))
+ifeq ($(BUILD_DEBUG),1)
+$(info SYSDEFS = $(SYSDEFS))
+$(info SYSIDIRS = $(SYSIDIRS))
+$(info SYSLDIRS = $(SYSLDIRS))
+endif
 

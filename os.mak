@@ -30,7 +30,13 @@ else
     OS=$(shell uname -s)
     ifeq ($(OS),Linux)
         HOST_OS=LINUX
-        HOST_COMPILER?=GCC
+        ifeq ($(TARGET_CPU),C64T)
+            HOST_COMPILER=CGT6X
+        else ifeq ($(TARGET_CPU),C64P)
+            HOST_COMPILER=CGT6X
+        else
+            HOST_COMPILER?=GCC
+        endif
     else ifeq ($(OS),Darwin)
         HOST_OS=DARWIN
         HOST_COMPILER=GCC
@@ -50,7 +56,4 @@ ifeq ($(HOST_OS),Windows_NT)
 else
     PATH_CONV=$(subst _,_,$(1))
 endif
-
-$(info HOST_OS=$(HOST_OS))
-$(info HOST_COMPILER=$(HOST_COMPILER))
 

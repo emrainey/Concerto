@@ -17,16 +17,16 @@
 all::
 
 # Define our pathing
-HOST_ROOT?=$(abspath .)
-$(info HOST_ROOT=$(HOST_ROOT))
-
-BUILD_FOLDER?=concerto
-CONCERTO_ROOT?=$(HOST_ROOT)/$(BUILD_FOLDER)
+HOST_ROOT ?= $(abspath .)
+BUILD_FOLDER ?= concerto
+CONCERTO_ROOT ?= $(HOST_ROOT)/$(BUILD_FOLDER)
+BUILD_OUTPUT ?= $(HOST_ROOT)/out
+BUILD_TARGET ?= $(CONCERTO_ROOT)/target.mak
 
 include $(CONCERTO_ROOT)/os.mak
 include $(CONCERTO_ROOT)/machine.mak
-include $(CONCERTO_ROOT)/target.mak
 include $(CONCERTO_ROOT)/shell.mak
+include $(CONCERTO_ROOT)
 
 # Define the prelude and finale files so that SUBMAKEFILEs know what they are
 # And if the users go and make -f concerto.mak then it will not work right.
@@ -39,9 +39,9 @@ SUBMAKEFILE := concerto.mak
 
 # Allows the commands to be printed out when invoked
 ifeq ($(BUILD_DEBUG),1)
-Q=
+Q:=
 else
-Q=@
+Q:=@
 endif
 
 # Initialize Build Variables
@@ -52,10 +52,13 @@ TARGET_BUILD:=debug
 else
 TARGET_BUILD:=release
 endif
-$(info TARGET_BUILD=$(TARGET_BUILD))
+
+# Define the output folder for all generated components
+TARGET_OUT ?= $(BUILD_OUTPUT)/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
+TARGET_DOC ?= $(BUILD_OUTPUT)/docs
 
 # If no directories were specified, then assume "source"
-DIRECTORIES?=source
+DIRECTORIES ?= source
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
 ifeq ($(HOST_OS),Windows_NT)
@@ -63,17 +66,31 @@ TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell cd $(d) && cmd.exe /C dir /
 else
 TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell find $(d)/ -name $(SUBMAKEFILE)))
 endif
-ifdef BUILD_DEBUG
-$(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
-endif
 
 # Create the MODULES list by parsing the makefiles.
 MODULES:=
 include $(TARGET_MAKEFILES)
+
+ifneq ($(NO_BANNER),1)
+$(info HOST_ROOT=$(HOST_ROOT))
+$(info HOST_COMPILER=$(HOST_COMPILER))
+$(info HOST_OS=$(HOST_OS))
+$(info HOST_CPU=$(HOST_CPU))
+$(info HOST_ARCH=$(HOST_ARCH))
+$(info TARGET_OS=$(TARGET_OS))
+$(info TARGET_CPU=$(TARGET_CPU))
+$(info TARGET_PLATFORM=$(TARGET_PLATFORM))
+$(info TARGET_BUILD=$(TARGET_BUILD))
+$(info TARGET_OUT=$(TARGET_OUT))
+$(info TARGET_DOC=$(TARGET_DOC))
 $(info MODULES=$(MODULES))
+ifeq ($(BUILD_DEBUG),1)
+$(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
+endif
+endif
 
 ifndef NO_TARGETS
-.PHONY: all dir depend build install uninstall clean clean_target targets scrub vars test
+.PHONY: all dir depend build install uninstall clean clean_target targets scrub vars test docs clean_docs pdf
 
 depend::
 
@@ -86,33 +103,27 @@ install:: build
 uninstall::
 
 targets::
-	@echo TARGETS=$(MODULES)
-
-out::
-ifeq ($(HOST_OS),Windows_NT)
-	@echo TARGET_OUT=$(HOST_ROOT)\out\$(TARGET_CPU)\$(TARGET_OS)
-else
-	@echo TARGET_OUT=$(HOST_ROOT)/out/$(TARGET_CPU)/$(TARGET_OS)
-endif
+	$(PRINT) TARGETS=$(MODULES)
 
 scrub::
-ifeq ($(HOST_OS),Windows_NT)
-	@echo [ROOT] Deleting $(HOST_ROOT)\out\$(TARGET_OS)\$(TARGET_CPU)
-	-$(Q)$(CLEANDIR) $(call PATH_CONV,$(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU))
-else
-	@echo [ROOT] Deleting $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)
-	-$(Q)$(CLEANDIR) $(HOST_ROOT)/out/$(TARGET_OS)/$(TARGET_CPU)
-endif
+	$(PRINT) Deleting $(BUILD_OUTPUT)
+	-$(Q)$(CLEANDIR) $(call PATH_CONV,$(BUILD_OUTPUT))
 
 vars:: $(foreach mod,$(MODULES),$(mod)_vars)
-	@echo HOST_ROOT=$(HOST_ROOT)
-	@echo HOST_OS=$(HOST_OS)
-	@echo HOST_COMPILER=$(HOST_COMPILER)
-	@echo TARGET_CPU=$(TARGET_CPU)
-	@echo MAKEFILE_LIST=$(MAKEFILE_LIST)
-	@echo TARGET_MAKEFILES=$(TARGET_MAKEFILES)
+	$(PRINT) HOST_ROOT=$(HOST_ROOT)
+	$(PRINT) HOST_OS=$(HOST_OS)
+	$(PRINT) HOST_COMPILER=$(HOST_COMPILER)
+	$(PRINT) TARGET_CPU=$(TARGET_CPU)
+	$(PRINT) MAKEFILE_LIST=$(MAKEFILE_LIST)
+	$(PRINT) TARGET_MAKEFILES=$(TARGET_MAKEFILES)
 
 test:: $(foreach mod,$(MODULES),$(mod)_test)
-	@echo Executing Unit tests
-endif
+	$(PRINT) Executing Unit tests
 
+todo:
+	$(Q)fgrep -Rn @TODO $(HOST_ROOT) --exclude-dir=.git \
+									 --exclude-dir=docs \
+									 --exclude-dir=$(BUILD_FOLDER) \
+									 --exclude-dir=out
+
+endif
