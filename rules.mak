@@ -26,7 +26,7 @@ BUILD_TARGET ?= $(CONCERTO_ROOT)/target.mak
 include $(CONCERTO_ROOT)/os.mak
 include $(CONCERTO_ROOT)/machine.mak
 include $(CONCERTO_ROOT)/shell.mak
-include $(CONCERTO_ROOT)
+include $(BUILD_TARGET)
 
 # Define the prelude and finale files so that SUBMAKEFILEs know what they are
 # And if the users go and make -f concerto.mak then it will not work right.
