@@ -63,6 +63,12 @@ else ifeq ($(HOST_COMPILER),CLANG)
 	include $(CONCERTO_ROOT)/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
 	include $(CONCERTO_ROOT)/cl.mak
+else ifeq ($(HOST_COMPILER),CGT6X)
+	include $(CONCERTO_ROOT)/cgt6x.mak
+else ifeq ($(HOST_COMPILER),QCC)
+	include $(CONCERTO_ROOT)/qcc.mak
+else ifeq ($(HOST_COMPILER),TMS470)
+	include $(CONCERTO_ROOT)/tms470.mak
 endif
 
 include $(CONCERTO_ROOT)/java.mak

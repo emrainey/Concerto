@@ -122,6 +122,7 @@ test:: $(foreach mod,$(MODULES),$(mod)_test)
 
 todo:
 	$(Q)fgrep -Rn @TODO $(HOST_ROOT) --exclude-dir=.git \
+									 --exclude-dir=.svn \
 									 --exclude-dir=docs \
 									 --exclude-dir=$(BUILD_FOLDER) \
 									 --exclude-dir=out
