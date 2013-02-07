@@ -225,7 +225,6 @@ endef
 
 define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
-	@echo Building for $($(_MODULE)_BIN)
 endef
 
 define $(_MODULE)_CLEAN_LNK
