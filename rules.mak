@@ -27,6 +27,7 @@ include $(CONCERTO_ROOT)/os.mak
 include $(CONCERTO_ROOT)/machine.mak
 include $(CONCERTO_ROOT)/shell.mak
 include $(BUILD_TARGET)
+include $(CONCERTO_ROOT)/scm.mak
 
 # Define the prelude and finale files so that SUBMAKEFILEs know what they are
 # And if the users go and make -f concerto.mak then it will not work right.
@@ -87,6 +88,8 @@ $(info MODULES=$(MODULES))
 ifeq ($(BUILD_DEBUG),1)
 $(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
 endif
+$(info SCM_ROOT=$(SCM_ROOT))
+$(info SCM_VERSION=$(SCM_VERSION))
 endif
 
 ifndef NO_TARGETS
@@ -125,6 +128,6 @@ todo:
 									 --exclude-dir=.svn \
 									 --exclude-dir=docs \
 									 --exclude-dir=$(BUILD_FOLDER) \
-									 --exclude-dir=out
+									 --exclude-dir=$(BUILD_OUTPUT)
 
 endif

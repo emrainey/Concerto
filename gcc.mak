@@ -67,17 +67,17 @@ $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(l
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -fms-extensions -Wno-write-strings
+$(_MODULE)_COPT += -Wall -fms-extensions -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb -ggdb3 -Q
-$(_MODULE)_LOPT += -g
+#$(_MODULE)_LOPT += -g
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3
 endif
 
 ifeq ($(TARGET_CPU),ARM)
-$(_MODULE)_COPT += -marm -mapcs -mno-sched-prolog -mno-thumb-interwork
+$(_MODULE)_COPT += -mapcs -mno-sched-prolog -mno-thumb-interwork
 ifeq ($(TARGET_OS),LINUX)
 $(_MODULE)_COPT += -mabi=aapcs-linux
 endif
@@ -111,8 +111,10 @@ endif
 ###################################################
 ifneq ($(TARGET_OS),CYGWIN)
 EXPORT_FLAG:=--export-dynamic
+EXPORTER   :=-rdynamic
 else
-#EXPORT_FLAG:=--export-all-symbols
+EXPORT_FLAG:=--export-all-symbols
+EXPORTER   :=
 endif
 
 $(_MODULE)_CLEAN_OBJ  := $(CLEAN) $($(_MODULE)_OBJS)
@@ -128,15 +130,11 @@ $(_MODULE)_INSTALL_EXE:= $(INSTALL) $($(_MODULE)_BIN) $($(_MODULE)_INSTALL_BIN)
 $(_MODULE)_UNINSTALL_EXE:=$(CLEAN) $($(_MODULE)_INSTALL_BIN)/$($(_MODULE)_OUT)
 $(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
 ifeq ($(TARGET_OS),DARWIN)
-$(_MODULE)_LINK_DSO   := $(LD) -dynamiclib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS)
-$(_MODULE)_LINK_EXE   := $(CP) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
+$(_MODULE)_LINK_DSO   := $(LD) -shared $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS)
+$(_MODULE)_LINK_EXE   := $(LD) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
 else
-ifeq ($(TARGET_PLATFORM), PANDA)
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -soname,$(notdir $($(_MODULE)_BIN)).1.0 -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) $($(_MODULE)_MAP)
-else
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).1.0 -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) $($(_MODULE)_MAP)
-endif
-$(_MODULE)_LINK_EXE   := $(CP) -rdynamic -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,$($(_MODULE)_MAP)
+$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).1.0 -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) -Wl,$($(_MODULE)_MAP)
+$(_MODULE)_LINK_EXE   := $(LD) $(EXPORTER) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,$($(_MODULE)_MAP)
 endif
 
 ###################################################

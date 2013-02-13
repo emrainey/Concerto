@@ -64,7 +64,7 @@ $(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -Wno-write-strings
+$(_MODULE)_COPT += -Wall -Wno-deprecated
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3

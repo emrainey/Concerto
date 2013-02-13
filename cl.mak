@@ -66,8 +66,10 @@ endif
 
 ifdef DEFFILE
 $(_MODULE)_DEF:=/DEF:$(call PATH_CONV,$($(_MODULE)_SDIR)/$(DEFFILE))
+$(_MODULE)_DEPS:=$($(_MODULE)_SDIR)/$(DEFFILE)
 else
 $(_MODULE)_DEF:=
+$(_MODULE)_DEPS:=
 endif
 
 ifeq ($(TARGET_BUILD),debug)
@@ -196,14 +198,14 @@ endif
 
 define $(_MODULE)_COMPILE_TOOLS
 $($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.c $($(_MODULE)_ODIR)/.gitignore
-#	@echo [PURE] Compiling C99 $$(notdir $$<)
+#	@echo [PURE] Compiling MSFT C $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
 $($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.cpp $($(_MODULE)_ODIR)/.gitignore
-#	@echo [PURE] Compiling C++ $$(notdir $$<)
+#	@echo [PURE] Compiling MSFT C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
 $($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.S $($(_MODULE)_ODIR)/.gitignore
-#	@echo [PURE] Assembling $$(notdir $$<)
+#	@echo [PURE] Assembling NASM $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb)  $(LOGGING)
 endef

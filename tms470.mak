@@ -75,6 +75,10 @@ ifeq ($(TARGET_CPU),ARM)
 $(_MODULE)_COPT +=--endian=little --abi=eabi -mv=7A8  --float_support=vfpv3
 endif
 
+ifeq ($(CHECK_MISRA),1)
+$(_MODULE)_COPT += --check_misra
+endif
+
 $(_MODULE)_MAP      := -m=$($(_MODULE)_BIN).map
 $(_MODULE)_INCLUDES := $(foreach inc,$($(_MODULE)_IDIRS),-I="$(basename $(inc))") $(foreach inc,$($(_MODULE)_SYSIDIRS),-I="$(basename $(inc))")
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-d=$(def))
