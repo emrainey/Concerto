@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Erik Rainey
+# Copyright (C) 2013 Erik Rainey
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifndef TMS470_ROOT
-$(error You must define TMS470_ROOT!)
+ifndef TIARMCGT_ROOT
+$(error You must define TIARMCGT_ROOT!)
 endif
 ifndef XDC_ROOT
 $(error You must define XDC_ROOT!)
@@ -25,11 +25,11 @@ ifndef IPC_ROOT
 $(error You must define IPC_ROOT!)
 endif
 
-CC=cl470
-CP=cl470
-AS=asm470
-AR=ar470
-LD=lnk470
+CC=armcl
+CP=armcl
+AS=armasm
+AR=armar
+LD=armlnk
 
 ifdef LOGFILE
 LOGGING:=&>$(LOGFILE)
@@ -58,11 +58,6 @@ $(_MODULE)_NFO := $(ASSEMBLY:%.nfo=$($(_MODULE)_ODIR)/%.nfo) $(CPPSOURCES:%.cpp=
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib).$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib).$(LIB_EXT))
-
-ifeq ($(HOST_OS),Windows_NT)
-#$(_MODULE)_OBJS := $(foreach obj,$($(_MODULE)_OBJS), "$(obj)")
-endif
-
 $(_MODULE)_COPT := --gcc
 
 ifeq ($(TARGET_BUILD),debug)
@@ -144,7 +139,6 @@ endef
 
 define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
-	@echo Building $$(notdir $$<) as static library
 endef
 
 define $(_MODULE)_CLEAN_LNK
@@ -169,7 +163,6 @@ $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHA
 	-$(Q)$(call $(_MODULE)_LINK_LIB) $(LOGGING)
 
 build:: $($(_MODULE)_BIN)
-	@echo Building $$(notdir $$<) as static library
 endef
 
 define $(_MODULE)_CLEAN_LNK
@@ -191,7 +184,6 @@ endef
 
 define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
-	@echo Building $$(notdir $$<) as static library
 endef
 
 define $(_MODULE)_CLEAN_LNK
@@ -204,30 +196,31 @@ endif
 ifeq ($(HOST_OS),Windows_NT)
 define $(_MODULE)_COMPILE_TOOLS
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.c $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Compiling C99 $$(notdir $$<)
+	@echo [TIARM] Compiling C $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CC) -c $($(_MODULE)_CFLAGS) -fr="$$(dir $$@)\" -fo=$$@ -fs="$$(dir $$@)\" -fp="$$<" $(LOGGING))
 
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.cpp $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Compiling C++ $$(notdir $$<)
+	@echo [TIARM] Compiling C++ $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CP) -c $($(_MODULE)_CFLAGS) -fr="$$(dir $$@)\" -fo=$$@ -fs="$$(dir $$@)\" -fp="$$<" $(LOGGING))
 
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.S $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Assembling $$(notdir $$<)
+	@echo [TIARM] Assembling $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(AS) -c $($(_MODULE)_AFLAGS) -fr="$$(dir $$@)" -fo=$$@ "$$<" $(LOGGING))
 endef
 else
 define $(_MODULE)_COMPILE_TOOLS
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.c $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Compiling C99 $$(notdir $$<)
+	@echo [TIARM] Compiling C $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CC) -c $($(_MODULE)_CFLAGS) -fr=$$(dir $$@) -eo=.$(OBJ_EXT) -fo=$$@ -fs=$$(dir $$@) -fc=$$< $(LOGGING))
 
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.cpp $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Compiling C++ $$(notdir $$<)
+	@echo [TIARM] Compiling C++ $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CP) -c $($(_MODULE)_CFLAGS) -fr=$$(dir $$@) -eo=.$(OBJ_EXT) -fo=$$@ -fs=$$(dir $$@) -fp=$$< $(LOGGING))
 
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.S $($(_MODULE)_ODIR)/.gitignore
-	@echo [PURE] Assembling $$(notdir $$<)
+	@echo [TIARM] Assembling $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(AS) -c $($(_MODULE)_AFLAGS) -fr=$$(dir $$@) -eo=.$(OBJ_EXT) -fo=$$@ -fa=$$< $(LOGGING))
 endef
 
 endif
+

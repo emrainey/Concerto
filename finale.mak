@@ -69,6 +69,8 @@ else ifeq ($(HOST_COMPILER),QCC)
 	include $(CONCERTO_ROOT)/qcc.mak
 else ifeq ($(HOST_COMPILER),TMS470)
 	include $(CONCERTO_ROOT)/tms470.mak
+else ifeq ($(HOST_COMPILER),TIARMCGT)
+	include $(CONCERTO_ROOT)/tiarmcgt.mak
 endif
 
 include $(CONCERTO_ROOT)/java.mak
