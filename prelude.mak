@@ -156,8 +156,10 @@ INCS :=
 INC_SUBPATH :=
 HEADERS :=
 
-# Define a local path for this module's folder that we're processing...
-THIS := $($(_MODULE)_SDIR)
+# Define convenience variables
+SDIR := $($(_MODULE)_SDIR)
+TDIR := $($(_MODULE)_TDIR)
+ODIR := $($(_MODULE)_ODIR)
 
 # Pull in the definitions which will be redefined for this makefile
 include $(CONCERTO_ROOT)/definitions.mak

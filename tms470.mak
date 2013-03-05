@@ -25,11 +25,11 @@ ifndef IPC_ROOT
 $(error You must define IPC_ROOT!)
 endif
 
-CC=cl470
-CP=cl470
-AS=asm470
-AR=ar470
-LD=lnk470
+CC=$(TMS470_ROOT)/bin/cl470
+CP=$(TMS470_ROOT)/bin/cl470
+AS=$(TMS470_ROOT)/bin/asm470
+AR=$(TMS470_ROOT)/bin/ar470
+LD=$(TMS470_ROOT)/bin/lnk470
 
 ifdef LOGFILE
 LOGGING:=&>$(LOGFILE)
@@ -115,22 +115,7 @@ define $(_MODULE)_DEPEND_AS
 # Do nothing...
 endef
 
-ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
-
-define $(_MODULE)_PREBUILT
-
-$($(_MODULE)_SDIR)/$(1):
-
-build:: $($(_MODULE)_SDIR)/$(1)
-
-install:: $($(_MODULE)_TDIR)/$(notdir $(1))
-
-$($(_MODULE)_TDIR)/$(notdir $(1)): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_ODIR)/.gitignore
-	@echo Copying Prebuilt binary $($(_MODULE)_SDIR)/$(1) to $($(_MODULE)_TDIR)/$(notdir $(1))
-	-$(Q)$(call PATH_CONV,$(COPY) $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_TDIR)/$(notdir $(1)))
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),library)
+ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
 define $(_MODULE)_UNINSTALL
 uninstall::

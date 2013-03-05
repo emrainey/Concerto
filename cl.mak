@@ -106,24 +106,7 @@ endef
 define $(_MODULE)_DEPEND_AS
 endef
 
-ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
-
-define $(_MODULE)_PREBUILT
-$(info PREBUILT=$(1))
-$(info target=$(call PATH_CONV,$($(_MODULE)_TDIR)/$(1)))
-
-$($(_MODULE)_SDIR)/$(1):
-
-build:: $($(_MODULE)_TDIR)/$(notdir $(1))
-
-install:: $($(_MODULE)_TDIR)/$(1))
-
-$($(_MODULE)_TDIR)/$(notdir $(1)): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_ODIR)/.gitignore
-	@echo Copying Prebuilt binary to $($(_MODULE)_TDIR)
-	-$(Q)$(COPY) $(call PATH_CONV,$($(_MODULE)_SDIR)/$(1)) $(call PATH_CONV,$($(_MODULE)_TDIR)/$(notdir $(1)))
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),library)
+ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
 define $(_MODULE)_UNINSTALL
 uninstall::

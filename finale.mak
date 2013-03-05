@@ -116,7 +116,7 @@ $(eval $(call $(_MODULE)_UNINSTALL))
 else ifeq ($(strip $($(_MODULE)_TYPE)),exe)
 
 define $(_MODULE)_BUILD_EXE
-$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHARED_LIBS)
+$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHARED_LIBS) $($(_MODULE)_DEPS)
 	$(PRINT) Linking $$@
 	-$(Q)$(call $(_MODULE)_LINK_EXE) $(LOGGING)
 endef
@@ -146,6 +146,21 @@ $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
 
 else ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
 
+$(_MODULE)_BIN := $($(_MODULE)_TDIR)/$(TARGET)$(suffix $(PREBUILT))
+
+define $(_MODULE)_PREBUILT
+
+$(_MODULE): $($(_MODULE)_BIN)
+
+$($(_MODULE)_BIN): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_TDIR)/.gitignore
+	@echo Copying Prebuilt binary $($(_MODULE)_SDIR)/$(1) to $($(_MODULE)_BIN)
+	-$(Q)$(COPY) $(call PATH_CONV,$($(_MODULE)_SDIR)/$(1) $($(_MODULE)_BIN))
+
+$(_MODULE)_CLEAN_BIN = $(CLEAN) $(call PATH_CONV,$($(_MODULE)_BIN))
+$(_MODULE)_CLEAN_LNK =
+
+endef
+
 $(eval $(call $(_MODULE)_PREBUILT,$(PREBUILT)))
 
 else ifeq ($(strip $($(_MODULE)_TYPE)),jar)
@@ -163,12 +178,15 @@ $(eval $(call $(_MODULE)_DOCUMENTS))
 endif
 
 define $(_MODULE)_CLEAN
-.PHONY: clean_target clean
-clean_target::
+.PHONY: clean_target clean $(_MODULE)_clean $(_MODULE)_clean_target
+clean_target:: $(_MODULE)_clean_target
+clean:: $(_MODULE)_clean
+
+$(_MODULE)_clean_target:
 	$(PRINT) Cleaning $(_MODULE) target $($(_MODULE)_BIN)
 	-$(Q)$(call $(_MODULE)_CLEAN_BIN)
 
-clean:: clean_target
+$(_MODULE)_clean: $(_MODULE)_clean_target
 ifneq ($($(_MODULE)_OBJS),)
 	$(PRINT) Cleaning objects $($(_MODULE)_OBJS)
 	-$(Q)$(call $(_MODULE)_CLEAN_OBJ)

@@ -13,9 +13,11 @@
 # limitations under the License.
 
 ifeq ($(SCM_ROOT),)
-SCM_ROOT := $(realpath .svn)
+# wildcard is required for windows since realpath doesn't return NULL if not found
+SCM_ROOT := $(wildcard $(realpath .svn))
 ifneq ($(SCM_ROOT),)
 ifeq ($(BUILD_DEBUG),1)
+$(info $(SCM_ROOT))
 $(info Subversion is used)
 endif
 SCM_VERSION := r$(word 2, $(shell svn info | grep Revision))
@@ -23,13 +25,19 @@ endif
 endif
 
 ifeq ($(SCM_ROOT),)
-SCM_ROOT := $(realpath .git)
+# wildcard is required for windows since realpath doesn't return NULL if not found
+SCM_ROOT := $(wildcard $(realpath .git))
 ifneq ($(SCM_ROOT),)
 ifeq ($(BUILD_DEBUG),1)
+$(info $(SCM_ROOT))
 $(info GIT is used)
 endif
 SCM_VERSION := $(shell git describe --tags --dirty)
+# The following is in case git is not executable in the shell where the build is taking place (eg. DOS)
+ifeq ($(SCM_VERSION),)
+TEMP := $(lastword $(shell $(CAT) $(call PATH_CONV,"$(SCM_ROOT)/HEAD")))
+SCM_VERSION := $(shell $(CAT) $(call PATH_CONV,"$(SCM_ROOT)/$(TEMP)"))
 endif
 endif
-
+endif
 

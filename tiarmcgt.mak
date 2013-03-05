@@ -25,11 +25,11 @@ ifndef IPC_ROOT
 $(error You must define IPC_ROOT!)
 endif
 
-CC=armcl
-CP=armcl
-AS=armasm
-AR=armar
-LD=armlnk
+CC=$(TIARMCGT_ROOT)/bin/armcl
+CP=$(TIARMCGT_ROOT)/bin/armcl
+AS=$(TIARMCGT_ROOT)/bin/armasm
+AR=$(TIARMCGT_ROOT)/bin/armar
+LD=$(TIARMCGT_ROOT)/bin/armlnk
 
 ifdef LOGFILE
 LOGGING:=&>$(LOGFILE)
@@ -71,7 +71,7 @@ $(_MODULE)_COPT +=--endian=little --abi=eabi -mv=7A8  --float_support=vfpv3
 endif
 
 ifeq ($(CHECK_MISRA),1)
-$(_MODULE)_COPT += --check_misra --misra_advisory=suppress
+$(_MODULE)_MISRA += --check_misra --misra_advisory=suppress
 endif
 
 $(_MODULE)_MAP      := -m=$($(_MODULE)_BIN).map
@@ -110,22 +110,7 @@ define $(_MODULE)_DEPEND_AS
 # Do nothing...
 endef
 
-ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
-
-define $(_MODULE)_PREBUILT
-
-$($(_MODULE)_SDIR)/$(1):
-
-build:: $($(_MODULE)_SDIR)/$(1)
-
-install:: $($(_MODULE)_TDIR)/$(notdir $(1))
-
-$($(_MODULE)_TDIR)/$(notdir $(1)): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_ODIR)/.gitignore
-	@echo Copying Prebuilt binary $($(_MODULE)_SDIR)/$(1) to $($(_MODULE)_TDIR)/$(notdir $(1))
-	-$(Q)$(call PATH_CONV,$(COPY) $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_TDIR)/$(notdir $(1)))
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),library)
+ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
 define $(_MODULE)_UNINSTALL
 uninstall::
@@ -211,7 +196,7 @@ else
 define $(_MODULE)_COMPILE_TOOLS
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.c $($(_MODULE)_ODIR)/.gitignore
 	@echo [TIARM] Compiling C $$(notdir $$<)
-	$(Q)$$(call PATH_CONV,$(CC) -c $($(_MODULE)_CFLAGS) -fr=$$(dir $$@) -eo=.$(OBJ_EXT) -fo=$$@ -fs=$$(dir $$@) -fc=$$< $(LOGGING))
+	$(Q)$$(call PATH_CONV,$(CC) -c $($(_MODULE)_CFLAGS) $($(_MODULE)_MISRA) -fr=$$(dir $$@) -eo=.$(OBJ_EXT) -fo=$$@ -fs=$$(dir $$@) -fc=$$< $(LOGGING)) $($(_MODULE)_MISRA)
 
 $($(_MODULE)_ODIR)/%.$(OBJ_EXT): $($(_MODULE)_SDIR)/%.cpp $($(_MODULE)_ODIR)/.gitignore
 	@echo [TIARM] Compiling C++ $$(notdir $$<)

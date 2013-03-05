@@ -1,10 +1,23 @@
 Concerto is a simple 1 pass Makefile system. 
 
-When you want to use Concerto, simply create a Makefile at the top of you project, and enter this inside it:
+When you want to use Concerto, create a Makefile at the top of you project consisting of the following:
 
-include $(CONCERTO_FOLDER)/rules.mak
+CONCERTO_ROOT ?= concerto
+ifeq ($(wildcard $(CONCERTO_ROOT)),)
+$(error You must define CONCERTO_ROOT!)
+endif
+#Optional, if DIRECTORIES is not specified concerto assumes source
+DIRECTORIES  := src docs
+#BUILD_TARGET is optional, it is used to reflect specific needs of your build system.
+#if not specified concerto's target.mak is used instead
+BUILD_TARGET := $(abspath .)/target.mak
+include $(CONCERTO_ROOT)/rules.mak
 
-Individual Concerto Build sub-makefiles look like this:
+================================================================================
+Concerto looks for sub-makefiles called concerto.mak in the directories (and their corresponding subdirectories)
+specified by the DIRECTORIES variable.
+
+concerto.mak files can contain the following:
 
 _MODULE=<optional module name>
 include $(PRELUDE)
@@ -21,4 +34,26 @@ SYS_STATIC_LIBS=<static libraries outside the build system>
 SYS_SHARED_LIBS=<shared libraries outside the build system>
 include $(FINALE)
 
-You can then modify target.mak to reflect the specific needs of you build system. 
+================================================================================
+The following variables and macros are available for use in a concerto.mak file:
+_MODPATH=<the directory where this concerto.mak file lives>
+
+$(call all-type-files-in,<ext>,<dir>)=<list of files with extension .ext in "dir" and any sub-directory of "dir">
+$(call all-type-files,<ext>)=<list of files with extension .ext that exist inside this module (including any sub-directories)>
+$(all-c-files)=<list of c files c that exist inside this module (including any sub-directories)>
+$(call all-c-files-in,<dir>)=<list of c files c that exist in dir (including any sub-directories). dir is relative to the module directory>
+See definitions.mak for other supported file extensions.
+
+================================================================================
+The following environment variables can be used to control the build:
+
+NO_OPTIMIZE=1 (disables optimization in the compiler. The target build will be debug.
+
+================================================================================
+Concerto provides the following useful rules:
+
+make scrub = This will delete the build output directory
+make targets = Lists all targets defined by concerto.mak files
+make <target> = This will build the specified target and any of its dependencies
+make <target>_clean = Cleans out the specified target
+make clean = Cleans out all build artifacts for all targets

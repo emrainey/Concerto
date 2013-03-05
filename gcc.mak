@@ -51,11 +51,7 @@ else
 	BIN_EXT=
 endif
 
-ifneq ($($(_MODULE)_TYPE),prebuilt)
 $(_MODULE)_OUT  := $(BIN_PRE)$(TARGET)$(BIN_EXT)
-else
-$(_MODULE)_OUT  := $(notdir $(PREBUILT))
-endif
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
 $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
@@ -169,22 +165,7 @@ define $(_MODULE)_DEPEND_AS
 # Do nothing...
 endef
 
-ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
-
-define $(_MODULE)_PREBUILT
-
-$($(_MODULE)_SDIR)/$(1):
-
-build:: $($(_MODULE)_SDIR)/$(1)
-
-install:: $($(_MODULE)_TDIR)/$(notdir $(1))
-
-$($(_MODULE)_TDIR)/$(notdir $(1)): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_ODIR)/.gitignore
-	@echo Copying Prebuilt binary $($(_MODULE)_SDIR)/$(1) to $($(_MODULE)_TDIR)/$(notdir $(1))
-	-$(Q)$(COPY) $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_TDIR)/$(notdir $(1))
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),library)
+ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
 define $(_MODULE)_UNINSTALL
 uninstall::
