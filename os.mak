@@ -15,45 +15,46 @@
 ifeq ($(OS),Windows_NT)
     ifeq ($(TERM),cygwin)
         HOST_OS=CYGWIN
-        HOST_COMPILER=GCC
     else ifeq ($(TERM),xterm)
         HOST_OS=CYGWIN
-        HOST_COMPILER=GCC
         P2W_CONV=$(patsubst \cygdrive\c\%,c:\%,$(subst /,\,$(1)))
         W2P_CONV=$(subst \,/,$(patsubst C:\%,\cygdrive\c\% $(1)))
     else
         HOST_OS=Windows_NT
-        HOST_COMPILER=CL
         CL_ROOT?=$(VCINSTALLDIR)
     endif
 else
     OS=$(shell uname -s)
     ifeq ($(OS),Linux)
         HOST_OS=LINUX
-        ifeq ($(TARGET_CPU),C64T)
-            HOST_COMPILER=CGT6X
-        else ifeq ($(TARGET_CPU),C64P)
-            HOST_COMPILER=CGT6X
-        else
-            HOST_COMPILER?=GCC
-        endif
     else ifeq ($(OS),Darwin)
         HOST_OS=DARWIN
-        HOST_COMPILER=GCC
     else ifeq ($(OS),CYGWIN_NT-5.1)
         HOST_OS=CYGWIN
-        HOST_COMPILER=GCC
         P2W_CONV=$(patsubst \cygdrive\c\%,c:\%,$(subst /,\,$(1)))
         W2P_CONV=$(subst \,/,$(patsubst C:\%,\cygdrive\c\% $(1)))
     else
         HOST_OS=POSIX
-        HOST_COMPILER=GCC
     endif
 endif
 
+# TI compilers are only supported on Windows and Linux
+ifeq ($(HOST_OS),$(filter $(HOST_OS),Windows_NT LINUX))
+    ifneq ($(TARGET_CPU),)
+        ifeq ($(TARGET_CPU),$(filter $(TARGET_CPU),C64T C64P C64 C66 C674 C67 C67P))
+            HOST_COMPILER?=CGT6X
+        else ifeq ($(TARGET_CPU),EVE)
+            HOST_COMPILER?=ARP32
+        endif
+    endif
+endif
+
+# PATH_CONV and set HOST_COMPILER if not yet specified
 ifeq ($(HOST_OS),Windows_NT)
     PATH_CONV=$(subst /,\,$(1))
+    HOST_COMPILER?=CL
 else
     PATH_CONV=$(1)
+    HOST_COMPILER?=GCC
 endif
 

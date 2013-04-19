@@ -57,7 +57,7 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$(call PATH_CONV,$($(_MODULE)_LDIRS)),/LIB
 $(_MODULE)_ARFLAGS  := /nologo /MACHINE:$(TARGET_CPU)
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
 $(_MODULE)_LDFLAGS  := /nologo /MACHINE:$(TARGET_CPU)
-$(_MODULE)_CFLAGS   := /c /nologo $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT)
+$(_MODULE)_CFLAGS   := /c /nologo $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
 
 ifdef ENTRY
 $(_MODULE)_ENTRY := $(ENTRY)
@@ -80,8 +80,6 @@ endif
 # COMMANDS
 ###################################################
 
-$(_MODULE)_CLEAN_OBJ := $(CLEAN) $(call PATH_CONV,$($(_MODULE)_OBJS))
-$(_MODULE)_CLEAN_BIN := $(CLEAN) $(call PATH_CONV,$($(_MODULE)_BIN))
 $(_MODULE)_ATTRIB_EXE := $(ATTRIB) $(call PATH_CONV,$($(_MODULE)_BIN))
 $(_MODULE)_LN_DS0 := $(SET_RW) $(call PATH_CONV,$($(_MODULE)_BIN))
 $(_MODULE)_UNLN_DSO      := $(SET_RW) $(call PATH_CONV,$($(_MODULE)_BIN))
@@ -96,15 +94,6 @@ $(_MODULE)_LINK_DSO  := $(LD) $($(_MODULE)_LDFLAGS) $(call PATH_CONV,$($(_MODULE
 ###################################################
 # MACROS FOR COMPILING
 ###################################################
-
-define $(_MODULE)_DEPEND_CC
-endef
-
-define $(_MODULE)_DEPEND_CP
-endef
-
-define $(_MODULE)_DEPEND_AS
-endef
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
@@ -180,15 +169,15 @@ endef
 endif
 
 define $(_MODULE)_COMPILE_TOOLS
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.c $($(_MODULE)_ODIR)/.gitignore
+$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.c
 #	@echo [PURE] Compiling MSFT C $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.cpp $($(_MODULE)_ODIR)/.gitignore
+$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.cpp
 #	@echo [PURE] Compiling MSFT C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.S $($(_MODULE)_ODIR)/.gitignore
+$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.S
 #	@echo [PURE] Assembling NASM $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb)  $(LOGGING)
 endef

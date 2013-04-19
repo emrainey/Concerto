@@ -39,15 +39,14 @@ ifneq ($($(_MODULE)_JAVA_LIBS),)
 $(_MODULE)_JAVA_DEPS := $(foreach lib,$($(_MODULE)_JAVA_LIBS),$($(_MODULE)_TDIR)/$(lib).jar)
 $(_MODULE)_CLASSPATH += $($(_MODULE)_JAVA_DEPS)
 endif
-$(_MODULE)_CLEAN_OBJ := $(CLEAN) $($(_MODULE)_OBJS)
-$(_MODULE)_CLEAN_BIN := $(CLEAN) $($(_MODULE)_BIN)
+
 ifeq ($(BUILD_DEBUG),1)
 $(info CLASSPATH=$($(_MODULE)_CLASSPATH))
 endif
 $(_MODULE)_CLASSPATH := $(subst $(SPACE),:,$($(_MODULE)_CLASSPATH))
 JC_OPTS              := -deprecation -classpath $($(_MODULE)_CLASSPATH) -sourcepath $($(_MODULE)_SDIR) -d $($(_MODULE)_ODIR)
 ifeq ($(TARGET_BUILD),debug)
-JC_OPTS              += -g -verbose 
+JC_OPTS              += -g -verbose
 endif
 ifdef MANIFEST
 $(_MODULE)_MANIFEST  := -m $(MANIFEST)

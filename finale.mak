@@ -42,7 +42,7 @@ $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
 # For debugging the build system
 $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 
-ifndef SKIPBUILD
+ifneq ($(SKIPBUILD),1)
 
 NEEDS_COMPILER:=
 ifeq ($($(_MODULE)_TYPE),library)
@@ -83,12 +83,14 @@ include $(CONCERTO_ROOT)/doxygen.mak
 
 else
 
-$(info Build Skipped for $(_MODULE))
+$(info Build Skipped for $(_MODULE):$(TARGET))
 
 all %::
 
-endif  # ifndef SKIPBUILD
+endif  # ifneq SKIPBUILD
 
+# Reset Skipbuild
+SKIPBUILD:=
 
 ###################################################
 # RULES
@@ -147,16 +149,17 @@ $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
 else ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
 
 $(_MODULE)_BIN := $($(_MODULE)_TDIR)/$(TARGET)$(suffix $(PREBUILT))
+build:: $($(_MODULE)_BIN)
 
+#In Windows, copy does not update the timestamp, so we have to do an extra step below to update the timestamp
 define $(_MODULE)_PREBUILT
-
-$(_MODULE): $($(_MODULE)_BIN)
-
 $($(_MODULE)_BIN): $($(_MODULE)_SDIR)/$(1) $($(_MODULE)_TDIR)/.gitignore
 	@echo Copying Prebuilt binary $($(_MODULE)_SDIR)/$(1) to $($(_MODULE)_BIN)
 	-$(Q)$(COPY) $(call PATH_CONV,$($(_MODULE)_SDIR)/$(1) $($(_MODULE)_BIN))
+ifeq ($(HOST_OS),Windows_NT)
+	-$(Q)cd $($(_MODULE)_TDIR) && $(COPY) $(call PATH_CONV,$($(_MODULE)_BIN))+,,
+endif
 
-$(_MODULE)_CLEAN_BIN = $(CLEAN) $(call PATH_CONV,$($(_MODULE)_BIN))
 $(_MODULE)_CLEAN_LNK =
 
 endef
@@ -184,22 +187,26 @@ clean:: $(_MODULE)_clean
 
 $(_MODULE)_clean_target:
 	$(PRINT) Cleaning $(_MODULE) target $($(_MODULE)_BIN)
-	-$(Q)$(call $(_MODULE)_CLEAN_BIN)
+	-$(Q)$(CLEAN) $(call PATH_CONV,$($(_MODULE)_BIN))
+	$(PRINT) Cleaning $(_MODULE) target $($(_MODULE)_MAP)
+	-$(Q)$(CLEAN) $(call PATH_CONV,$($(_MODULE)_MAP))
 
 $(_MODULE)_clean: $(_MODULE)_clean_target
-ifneq ($($(_MODULE)_OBJS),)
-	$(PRINT) Cleaning objects $($(_MODULE)_OBJS)
-	-$(Q)$(call $(_MODULE)_CLEAN_OBJ)
-endif
+	$(PRINT) Cleaning $($(_MODULE)_ODIR)
+	-$(Q)$(CLEANDIR) $(call PATH_CONV,$($(_MODULE)_ODIR))
+
 endef
 
+# Include compiler generated dependency rules
+# Second rule is to support module source sub-directories
+define $(_MODULE)_DEPEND
+-include $(1).dep
+$(1)$(2): $(dir $(1)).gitignore
+endef
+
+$(foreach obj,$($(_MODULE)_OBJS),$(eval $(call $(_MODULE)_DEPEND,$(basename $(obj)),$(suffix $(obj)))))
 $(eval $(call $(_MODULE)_CLEAN))
 $(eval $(call $(_MODULE)_CLEAN_LNK))
-$(foreach obj,$(CSOURCES),  $(eval $(call $(_MODULE)_DEPEND_CC,$(basename $(obj)))))
-$(foreach obj,$(CPPSOURCES),$(eval $(call $(_MODULE)_DEPEND_CP,$(basename $(obj)))))
-$(foreach obj,$(ASSEMBLY),  $(eval $(call $(_MODULE)_DEPEND_AS,$(basename $(obj)))))
-$(foreach cls,$(JSOURCES),  $(eval $(call $(_MODULE)_DEPEND_CLS,$(basename $(cls)))))
-
 $(eval $(call $(_MODULE)_COMPILE_TOOLS))
 
 define $(_MODULE)_VARDEF

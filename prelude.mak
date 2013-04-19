@@ -125,10 +125,14 @@ endif
 
 # Define a ".gitignore" file which will help in making sure the module's output
 # folder always exists.
-$($(_MODULE)_ODIR)/.gitignore:
+%.gitignore:
+ifeq ($(BUILD_DEBUG),1)
 	$(PRINT) Creating Folder $(dir $@)
+endif
 	-$(Q)$(MKDIR) $(call PATH_CONV,$(dir $@))
+ifeq ($(BUILD_DEBUG),1)
 	$(PRINT) Touching $@
+endif
 	-$(Q)$(TOUCH) $(call PATH_CONV,$@)
 
 dir:: $($(_MODULE)_ODIR)/.gitignore
@@ -155,6 +159,7 @@ BINS :=
 INCS :=
 INC_SUBPATH :=
 HEADERS :=
+DEFFILE :=
 
 # Define convenience variables
 SDIR := $($(_MODULE)_SDIR)

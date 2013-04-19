@@ -16,12 +16,19 @@
 .PHONY: all
 all::
 
-# Define our pathing
+# Define our pathing and default variable values
 HOST_ROOT ?= $(abspath .)
 BUILD_FOLDER ?= concerto
 CONCERTO_ROOT ?= $(HOST_ROOT)/$(BUILD_FOLDER)
-BUILD_OUTPUT ?= $(HOST_ROOT)/out
+BUILD_OUTPUT ?= out
 BUILD_TARGET ?= $(CONCERTO_ROOT)/target.mak
+# If no directories were specified, then assume "source"
+DIRECTORIES ?= source
+ifeq ($(NO_OPTIMIZE),1)
+TARGET_BUILD:=debug
+else
+TARGET_BUILD:=release
+endif
 
 include $(CONCERTO_ROOT)/os.mak
 include $(CONCERTO_ROOT)/machine.mak
@@ -45,21 +52,12 @@ else
 Q:=@
 endif
 
-# Initialize Build Variables
-SKIPBUILD:=
-
-ifeq ($(NO_OPTIMIZE),1)
-TARGET_BUILD:=debug
-else
-TARGET_BUILD:=release
-endif
+# Define a macro to make the output target path
+MAKE_OUT = $(1)/$(BUILD_OUTPUT)/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
 
 # Define the output folder for all generated components
-TARGET_OUT ?= $(BUILD_OUTPUT)/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
-TARGET_DOC ?= $(BUILD_OUTPUT)/docs
-
-# If no directories were specified, then assume "source"
-DIRECTORIES ?= source
+TARGET_OUT ?= $(call MAKE_OUT,$(HOST_ROOT))
+TARGET_DOC ?= $(HOST_ROOT)/$(BUILD_OUTPUT)/docs
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
 ifeq ($(HOST_OS),Windows_NT)

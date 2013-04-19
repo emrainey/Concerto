@@ -23,7 +23,7 @@ LINK     := cmd.exe /C junction
 TOUCH    := cmd.exe /C type NUL >
 INSTALL  := cmd.exe /C copy /Y /Z /V
 MKDIR    := cmd.exe /C mkdir
-CAT		 := cmd.exe /C type
+CAT      := cmd.exe /C type
 else # Bash variants
 CLEAN    := rm -f
 CLEANDIR := rm -rf

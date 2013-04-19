@@ -19,9 +19,6 @@ $(_MODULE)_TARGET := $(TARGET).h
 $(_MODULE)_BIN    := $($(_MODULE)_SDIR)/$($(_MODULE)_TARGET)
 $(_MODULE)_OBJS   := $($(_MODULE)_BIN)
 
-$(_MODULE)_CLEAN_BIN := -$(Q)$(CLEAN) $($(_MODULE)_BIN)
-$(_MODULE)_CLEAN_OBJS := -$(Q)$(CLEAN) $($(_MODULE)_OBJS)
-
 ifeq ($(CL_BUILD_RUNTIME),)
 
 # OpenCL-Environment Compiler Support
