@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-ifeq ($($(_MODULE)_TYPE),opencl_kernel)
-
-$(_MODULE)_TARGET := $(TARGET).h
+$(_MODULE)_TARGET := $($(_MODULE)_TARGET).h
 $(_MODULE)_BIN    := $($(_MODULE)_SDIR)/$($(_MODULE)_TARGET)
 $(_MODULE)_OBJS   := $($(_MODULE)_BIN)
 
@@ -58,6 +55,5 @@ $($(_MODULE)_SDIR)/%.h:
 	@echo Touching $$@
 	$(Q)$$(call $(TOUCH),$$@)
 endef
-endif
 endif
 

@@ -13,7 +13,11 @@
 # limitations under the License.
 
 ifeq ($(TARGET_CPU),$(HOST_CPU))
-	CROSS_COMPILE=
+	CROSS_COMPILE:=
+endif
+
+ifeq ($(TARGET_CPU),X86)
+	CROSS_COMPILE:=
 endif
 
 CC = $(CROSS_COMPILE)gcc
@@ -39,15 +43,21 @@ else
 	BIN_EXT=
 endif
 
-$(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$(BIN_PRE)$(TARGET)$(BIN_EXT)
+$(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
+$(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
 $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib).so)
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a) 
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT)) 
+ifeq ($(BUILD_MULTI_PROJECT),1)
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
+$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+endif
 
-$(_MODULE)_COPT :=
-$(_MODULE)_LOPT :=
-$(_MODULE)_COPT := -fms-extensions -fPIC -Wno-write-strings
+#$(_MODULE)_COPT := $(CFLAGS)
+#$(_MODULE)_LOPT := $(LDFLAGS)
+$(_MODULE)_COPT += -fms-extensions -fPIC -Wno-write-strings
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb -ggdb3 -Q
 $(_MODULE)_LOPT += -g
@@ -81,111 +91,32 @@ endif
 ###################################################
 # COMMANDS
 ###################################################
-
-LINK := ln -s
-CLEAN := rm -f
-CLEANDIR := rm -rf
-COPY := cp -f
-
 EXPORT_FLAG:=--export-dynamic
 
-$(_MODULE)_ATTRIB_EXE := chmod a+x $($(_MODULE)_BIN)
-$(_MODULE)_LN_DSO     := $(LINK) $($(_MODULE)_BIN).1.0 $($(_MODULE)_BIN)
-$(_MODULE)_UNLN_DSO   := $(CLEAN) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_BIN)
-$(_MODULE)_INSTALL_DSO:= install -C -m 755 $($(_MODULE)_BIN) $($(_MODULE)_INSTALL_LIB)
-$(_MODULE)_UNINSTALL_DSO:=$(CLEAN) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_BIN)
-$(_MODULE)_INSTALL_EXE:= install -C -m 755 $($(_MODULE)_BIN) $($(_MODULE)_INSTALL_BIN)
-$(_MODULE)_UNINSTALL_EXE:=$(CLEAN) $($(_MODULE)_INSTALL_BIN)/$($(_MODULE)_BIN)
+$(_MODULE)_LN_DSO     := $(LINK) $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_BIN)
+$(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($(_MODULE)_VERSION) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT)
 $(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
+$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared $(EXPORT_FLAG) -soname,$(notdir $($(_MODULE)_BIN)).1 --whole-archive $($(_MODULE)_LIBRARIES) --no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Map=$($(_MODULE)_MAP)
 $(_MODULE)_LINK_EXE   := $(CP) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared $(EXPORT_FLAG) -soname,$(notdir $($(_MODULE)_BIN)).1 --whole-archive $($(_MODULE)_LIBRARIES) --no-whole-archive -o $($(_MODULE)_BIN).1.0 $($(_MODULE)_OBJS) -Map=$($(_MODULE)_MAP)
 
 ###################################################
 # MACROS FOR COMPILING
 ###################################################
 
-ifeq ($(strip $($(_MODULE)_TYPE)),library)
-
-define $(_MODULE)_UNINSTALL
-uninstall::
-	@echo No uninstall step for static libraries
-endef
-
-define $(_MODULE)_INSTALL
-install:: $($(_MODULE)_BIN)
-	@echo No install step for static libraries
-endef
-
 define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
 endef
-
-define $(_MODULE)_CLEAN_LNK
-clean::
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-
-define $(_MODULE)_UNINSTALL
-uninstall::
-	@echo Uninstalling $($(_MODULE)_BIN) from $($(_MODULE)_INSTALL_LIB)
-	-$(Q)$(call $(_MODULE)_UNLN_DSO)
-	-$(Q)$(call $(_MODULE)_UNINSTALL_DSO)
-endef
-
-define $(_MODULE)_INSTALL
-install:: $($(_MODULE)_BIN)
-	@echo Installing $($(_MODULE)_BIN) to $($(_MODULE)_INSTALL_LIB)
-	-$(Q)$(call $(_MODULE)_INSTALL_DSO)
-	-$(Q)$(call $(_MODULE)_LN_DSO)
-endef
-
-define $(_MODULE)_BUILD
-build:: $($(_MODULE)_BIN)
-endef
-
-define $(_MODULE)_CLEAN_LNK
-clean::
-	@echo Removing Link for Shared Object $($(_MODULE)_BIN).1.0
-	-$(Q)$(CLEAN) $($(_MODULE)_BIN).1.0
-endef
-
-else ifeq ($(strip $($(_MODULE)_TYPE)),exe)
-
-define $(_MODULE)_UNINSTALL
-uninstall::
-	@echo Uninstalling $($(_MODULE)_BIN) from $($(_MODULE)_INSTALL_BIN)
-	-$(Q)$(call $(_MODULE)_UNINSTALL_EXE)
-endef
-
-define $(_MODULE)_INSTALL
-install:: $($(_MODULE)_BIN)
-	@echo Installing $($(_MODULE)_BIN) to $($(_MODULE)_INSTALL_BIN)
-	-$(Q)$(call $(_MODULE)_INSTALL_EXE)
-	-$(Q)$(call $(_MODULE)_ATTRIB_EXE)
-endef
-
-define $(_MODULE)_BUILD
-build:: $($(_MODULE)_BIN)
-	@echo Building for $($(_MODULE)_BIN)
-endef
-
-define $(_MODULE)_CLEAN_LNK
-clean::
-endef
-
-endif
 
 define $(_MODULE)_COMPILE_TOOLS
 $(ODIR)/%.o: $(SDIR)/%.c
-	@echo [PURE] Compiling C99 $$(notdir $$<)
+	@echo [QCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
-	@echo [PURE] Compiling C++ $$(notdir $$<)
+	@echo [QCC] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%.o: $(SDIR)/%.S
-	@echo [PURE] Assembling $$(notdir $$<)
-	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	@echo [QCC] Assembling $$(notdir $$<)
+	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef

@@ -1,59 +1,192 @@
-Concerto is a simple 1 pass Makefile system. 
+CONCERTO README
+===================
 
-When you want to use Concerto, create a Makefile at the top of you project consisting of the following:
+What is it?
+-------------------
+Concerto is a simple single-pass, non-recursive, full dependency-managed Makefile system.
 
-CONCERTO_ROOT ?= concerto
-ifeq ($(wildcard $(CONCERTO_ROOT)),)
-$(error You must define CONCERTO_ROOT!)
-endif
-#Optional, if DIRECTORIES is not specified concerto assumes source
-DIRECTORIES  := src docs
-#BUILD_TARGET is optional, it is used to reflect specific needs of your build system.
-#if not specified concerto's target.mak is used instead
-BUILD_TARGET := $(abspath .)/target.mak
-include $(CONCERTO_ROOT)/rules.mak
+How it works
+-------------------
+Concerto looks for sub-makefiles called concerto.mak in the directories (and their corresponding subdirectories) specified by the `DIRECTORIES` variable. It will "include" each module's concerto.mak file into the overall build and resolve all build related macros associated with that module. In this way, it is "single pass" in that all concerto.mak makefiles are read once. The Concerto Build System makefiles like the `prelude.mak` and `finale.mak` (and submakefiles therein) are read once per module. These are used to define the make-target macros needed to establish the *full* depedency tree of the entire build system. 
 
-================================================================================
-Concerto looks for sub-makefiles called concerto.mak in the directories (and their corresponding subdirectories)
-specified by the DIRECTORIES variable.
+Build System Files:
+-------------------
 
-concerto.mak files can contain the following:
+* `definitions.mak` - useful macros
+* `rules.mak` - internal top level file.
+* `os.mak` - determines host os
+* `machine.mak` - determines host cpu
+* `target.mak` - determines target variables and build system include paths, variables. This can be replaced (see above).
+* `scm.mak` - tries to extract SCM version information (SVN/GIT)
+* `prelude.mak` and `finale.mak` - generates non-recursive build system macros and variables per module.
+* `compilers/*` - Compiler specific files
+* `os/*` - OS specific installing/removing rules
+* `tools/*` - tools specific rules.
 
-_MODULE=<optional module name>
-include $(PRELUDE)
-TARGET=<name of the object created>
-TARGETTYPE=<exe|library|dsmo|prebuilt|jar>
-CSOURCES=<list of C files>
-CPPSOURCES=<list of C++ files>
-ASSEMBLY=<list of .S Files>
-IDIRS+=<include directories>
-DEFS+=<defines>
-STATIC_LIBS=<static libraries within the build system>
-SHARED_LIBS=<shared libraries within the build system>
-SYS_STATIC_LIBS=<static libraries outside the build system>
-SYS_SHARED_LIBS=<shared libraries outside the build system>
-include $(FINALE)
 
-================================================================================
-The following variables and macros are available for use in a concerto.mak file:
-_MODPATH=<the directory where this concerto.mak file lives>
+How to use it
+-------------------
+* Download or copy the concerto folder to somewhere on your build system from `git clone ssh://$USER@gitorious.design.ti.com:build-systems/concerto.git`
+* Create a Makefile at the top of you project consisting of the following:
 
-$(call all-type-files-in,<ext>,<dir>)=<list of files with extension .ext in "dir" and any sub-directory of "dir">
-$(call all-type-files,<ext>)=<list of files with extension .ext that exist inside this module (including any sub-directories)>
-$(all-c-files)=<list of c files c that exist inside this module (including any sub-directories)>
-$(call all-c-files-in,<dir>)=<list of c files c that exist in dir (including any sub-directories). dir is relative to the module directory>
-See definitions.mak for other supported file extensions.
+Top Level Makefile per project
 
-================================================================================
-The following environment variables can be used to control the build:
+    # Path to concerto install or use environment variable
+    CONCERTO_ROOT ?= concerto
+    # [OPTIONAL] if DIRECTORIES is not specified concerto assumes "source"
+    DIRECTORIES  := src docs
+    # [OPTIONAL] BUILD_TARGET is used to reflect specific needs of your build system.
+    # if not specified concerto's default target.mak is used instead
+    BUILD_TARGET := $(abspath .)/target.mak
+    # This calls concerto
+    include $(CONCERTO_ROOT)/rules.mak
 
-NO_OPTIMIZE=1 (disables optimization in the compiler. The target build will be debug.
 
-================================================================================
+What's in the concerto.mak
+-------------------
+`concerto.mak` files can contain the following (although it is normally shorter):
+
+    _MODULE=<optional module name>
+    include $(PRELUDE)
+    TARGET=<name of the object created>
+    TARGETTYPE=<exe|library|dsmo|prebuilt|jar>
+    CSOURCES=<list of C files>
+    CPPSOURCES=<list of C++ files>
+    ASSEMBLY=<list of .S Files>
+    KCSOURCES=<list of KernelC .k files>
+    IDIRS+=<include directories>
+    DEFS+=<defines>
+    STATIC_LIBS=<static libraries within the build system>
+    SHARED_LIBS=<shared libraries within the build system>
+    SYS_STATIC_LIBS=<static libraries outside the build system>
+    SYS_SHARED_LIBS=<shared libraries outside the build system>
+    LINKER_FILES=<list of linker files within the build system>
+    PREBUILT=<It specifies a single resource to be copied into the target output, only used with the prebuilt TARGETTYPE>
+    include $(FINALE)
+
+A typical `concerto.mak` is shorter:
+
+    include $(PRELUDE)
+    TARGET=mytest
+    TARGETTYPE=exe
+    SYS_STATIC_LIBS+=sosal
+    CSOURCES=main.c
+    include $(FINALE)
+
+Internal Variables
+-------------------
+The following variables and macros are available for use in a `concerto.mak` file.
+
+* `_MODULE` - the name of the module (if not defined, the containing folder name will be used).
+* `TARGET` - the name of the component to build. Prefixes and postfixes will be added by the build system, do not add them yourself.
+* `TARGETTYPE` - possible values are:
+ + exe - binary executable
+ + library - static library
+ + dsmo - dynamic shared library
+ + prebuilt - a prebuilt binary
+ + jar - a Java jar file
+ + doxygen - A doxygen build
+ + deb - A debian package (control file is required)
+* `SYS_SHARED_LIBS` - dynamic libraries for which no dependencies are generated (which implies that they are outside the build system).
+* `SYS_STATIC_LIBS` - static libraries for which no dependencies are generated (which implies that they are outside the build system). 
+* `SHARED_LIBS` - dynamic libraries for which dependencies are generated (which implies that they are intside the build system).
+* `STATIC_LIBS` - static libraries for which dependencies are generated (which implies that they are inside the build system).
+* `ASSEMBLY` - S files which must be in the same folder.
+* `CSOURCES` - C files which must be in the same folder.
+* `CPPSOURCES` - C++ files which must be in the same folder.
+* `JSOURCES` - Java files for Jar targets
+* `IDIRS` - include directories
+* `LDIRS` - library link path
+* `DEFS` - #defines to pass to the compiler
+
+Useful Macros
+------------------
+    
+    # list of files with extension .ext in "dir" and any sub-directory of "dir"
+    $(call all-type-files-in,<ext>,<dir>)
+    # list of files with extension .ext that exist inside this module (including any sub-directories)
+    $(call all-type-files,<ext>)
+    # list of c files c that exist inside this module (including any sub-directories)
+    $(all-c-files)
+    # list of c files c that exist in dir (including any sub-directories). dir is relative to the module directory
+    $(call all-c-files-in,<dir>)
+    
+See `definitions.mak` and `shell.mak` for other supported file extensions.
+
+External Variables
+------------------
+The preceding variables can be set in the command shell and `make` will import them.
+
+* `NO_OPTIMIZE=1` - disables optimization in the compiler. The target build will be built follow normal debugging flags on this platform.
+* `CHECK_MISRA=1` - it enables misra compliance checking however it is compiler dependant
+* `KEEP_ASM=1` - it keeps generated assembly listings however it is compiler dependant
+* `KEEP_VCC=1` - keep generated VCOP-C code however this is for ARP32/VCOP compiler only
+* `BUILD_DEBUG=1` - turns on explicit build output from each command
+* `TARGET_PLATFORM` - indicates the platform to build for (assumes 'PC' if not set).
+* `TARGET_OS` = LINUX __or__ Windows_NT __or__ DARWIN __or__ QNX
+* `TARGET_CPU` = ARM __or__ X86 __or__ X86_64 __or__ c64t  __or__ c67x
+* `TARGET_BUILD` = debug __or__ release - used to generate debuggable components to optimized components.
+* `HOST_OS` = LINUX __or__ Windows_NT 
+* `HOST_CPU` = X86  __or__ X86_64
+* `HOST_PLATFORM` = PC (ususally)
+
+Supported Platforms and Targets:
+--------------------------------
+
+Host Environments:
+* LINUX
+* DARWIN
+* WINDOWS (NT or later)
+* CYGWIN
+
+Target Environments:
+* LINUX
+* DARWIN
+* WINDOWS (NT or later)
+* CYGWIN
+* QNX 
+
+Target CPUs:
+* ARM
+* X86
+* X86_64
+* TI DSPs
+
+
+Windows Builds
+--------------
+
+When building on Windows, you need to install MinGW to get the GNU Make for Windows. Add the path to MinGW's bin/ folder to your `PATH` variable. You may want to rename or copy it from _mingw32-make.exe_ to _make.exe_.
+
+Available Build System Targets
+------------------------------
+
 Concerto provides the following useful rules:
 
-make scrub = This will delete the build output directory
-make targets = Lists all targets defined by concerto.mak files
-make <target> = This will build the specified target and any of its dependencies
-make <target>_clean = Cleans out the specified target
-make clean = Cleans out all build artifacts for all targets
+`make scrub` This will delete the build output directory
+`make targets` Lists all targets defined by concerto.mak files
+`make <target>` This will build the specified target and any of its dependencies
+`make <target>_clean` Cleans out the specified target
+`make clean` Cleans out all build artifacts for all targets
+`make vars` Outputs the module variables as concerto thinks they are. Useful for debugging.
+
+Build System Layout
+-------------------
+The typical folder layout (the default configuration) is:
+
+_project_folder_/
+
++ _Makefile_
++ include/
++ source/_any depth of folders_/_concerto.mak_
++ out/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)/_components_
+
+Multiproject Builds:
+--------------------
+For multiproject builds the layout is just all _project_folder_ folders as peers within a parent folder which will have the `out` folder as a child. The `Makefile` for a multiproject build simply notes the subdirs of the build.
+
+    DIRECTORIES := someproject/source someproject/docs
+    DIRECTORIES += otherproject/source otherproject/docs
+
+Concerto has to be careful to make sure no `_MODULES` are named the same in these two projects, so it alters the `_MODULE` name to guarentee uniqueness (otherwise you would have two components share the same output folder for intermediate objects and you may be compiler/linker collisions and very odd behavior). 
+

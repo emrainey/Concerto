@@ -15,24 +15,30 @@
 ifeq ($(OS),Windows_NT)
     ifeq ($(TERM),cygwin)
         HOST_OS=CYGWIN
+        HOST_NUM_CORES := $(shell cat /proc/cpuinfo | grep processor | wc -l)
     else ifeq ($(TERM),xterm)
         HOST_OS=CYGWIN
         P2W_CONV=$(patsubst \cygdrive\c\%,c:\%,$(subst /,\,$(1)))
         W2P_CONV=$(subst \,/,$(patsubst C:\%,\cygdrive\c\% $(1)))
+        HOST_NUM_CORES := $(shell cat /proc/cpuinfo | grep processor | wc -l)
     else
         HOST_OS=Windows_NT
         CL_ROOT?=$(VCINSTALLDIR)
+        HOST_NUM_CORES := $(NUM_PROCESSORS)
     endif
 else
     OS=$(shell uname -s)
     ifeq ($(OS),Linux)
         HOST_OS=LINUX
+        HOST_NUM_CORES := $(shell cat /proc/cpuinfo | grep processor | wc -l)
     else ifeq ($(OS),Darwin)
         HOST_OS=DARWIN
+        HOST_NUM_CORES := $(shell sysctl hw.ncpu | awk '{print $2}')
     else ifeq ($(OS),CYGWIN_NT-5.1)
         HOST_OS=CYGWIN
         P2W_CONV=$(patsubst \cygdrive\c\%,c:\%,$(subst /,\,$(1)))
         W2P_CONV=$(subst \,/,$(patsubst C:\%,\cygdrive\c\% $(1)))
+        HOST_NUM_CORES := $(shell cat /proc/cpuinfo | grep processor | wc -l)
     else
         HOST_OS=POSIX
     endif
@@ -51,10 +57,15 @@ endif
 
 # PATH_CONV and set HOST_COMPILER if not yet specified
 ifeq ($(HOST_OS),Windows_NT)
+    STRING_ESCAPE=$(subst \,\\,$(1))
     PATH_CONV=$(subst /,\,$(1))
+    PATH_SEP=\\
+    PATH_SEPD=$(strip \)
     HOST_COMPILER?=CL
 else
+    STRING_ESCAPE=$(1)
     PATH_CONV=$(1)
+    PATH_SEP=/
+    PATH_SEPD=/
     HOST_COMPILER?=GCC
 endif
-

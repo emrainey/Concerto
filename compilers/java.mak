@@ -26,7 +26,7 @@ SPACE:=$(EMPTY) $(EMPTY)
 
 ###############################################################################
 
-$(_MODULE)_BIN       := $($(_MODULE)_TDIR)/$(TARGET).jar
+$(_MODULE)_BIN       := $($(_MODULE)_TDIR)/$($(_MODULE)_TARGET).jar
 $(_MODULE)_CLASSES   := $(patsubst %.java,%.class,$(JSOURCES))
 $(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$($(_MODULE)_ODIR)/$(cls))
 ifdef CLASSPATH

@@ -12,46 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+define MACHINE_variables
+ifneq ($(filter $($(1)_CPU),x86 i386 i486 i586 i686),)
+    $(1)_FAMILY=X86
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
+else ifneq ($(filter $($(1)_CPU),Intel64 amd64),)
+    $(1)_FAMILY=X64
+    $(1)_ARCH=64
+    $(1)_ENDIAN=LITTLE
+else ifeq ($($(1)__CPU),Power Macintosh)
+    $(1)_FAMILY=PPC
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
+else ifeq ($($(1)_CPU),x86_64)
+    $(1)_FAMILY=x86_64
+    $(1)_ARCH=64
+    $(1)_ENDIAN=LITTLE
+else ifneq ($(filter $($(1)_CPU),ARM M3 M4 A8 A9 A15 armv7l),)
+    $(1)_FAMILY=ARM
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
+else ifneq ($(filter $($(1)_CPU),ARM64 aarch64 A53 A54 A57),)
+    $(1)_FAMILY=ARM
+    $(1)_ARCH=64
+    $(1)_ENDIAN=LITTLE
+else ifneq ($(filter $($(1)_CPU),C6XSIM C64T C64P C64 C66 C674 C67 C67P),)
+    $(1)_FAMILY=DSP
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
+else ifeq ($($(1)_CPU),EVE)
+    $(1)_FAMILY=EVE
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
+endif
+endef
+
+
 ifeq ($(HOST_OS),Windows_NT)
     $(info Windows Processor Architecture $(PROCESSOR_ARCHITECTURE))
     $(info Windows Processor Identification $(word 1, $(PROCESSOR_IDENTIFIER)))
-    TYPE=$(word 1, $(PROCESSOR_IDENTIFIER))
-    ifeq ($(TYPE),x86)
-        HOST_CPU=X86
-        HOST_ARCH=32
-    else ifeq ($(TYPE),Intel64)
-        HOST_CPU=X64
-        HOST_ARCH=64
-    else
-        $(error Unknown Processor Architecture on Windows!)
-    endif
+    HOST_CPU=$(word 1, $(PROCESSOR_IDENTIFIER))
 else
     HOST_CPU=$(shell uname -m)
-    ifeq ($(HOST_CPU),Power Macintosh)
-        HOST_CPU=PPC
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),x86_64)
-        HOST_CPU=x86_64
-        HOST_ARCH=64
-    else ifeq ($(HOST_CPU),i686)
-        HOST_CPU=X86
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),i586)
-        HOST_CPU=X86
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),i486)
-        HOST_CPU=X86
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),i386)
-        HOST_CPU=X86
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),ARM)
-        HOST_CPU=ARM
-        HOST_ARCH=32
-    else ifeq ($(HOST_CPU),armv7l)
-        HOST_CPU=ARM
-        HOST_ARCH=32
-    endif
 endif
 
+$(eval $(call MACHINE_variables,HOST))
 

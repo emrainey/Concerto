@@ -12,9 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Set the default values if not defined
+VERSION ?= 1.0
+
+# Users may use the new syntax of all variables starting with "MODULE_" but may not quite
+# yet so don't erase the value if it's set.
+#$(foreach mvar,$(_MODULE_VARS),$(if $(MODULE_$(mvar)),,$(eval MODULE_$(mvar):=$(value $(mvar)))))
+
+ifeq ($(BUILD_DEBUG),1)
+$(foreach mvar,$(sort $(_MODULE_VARS)),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+#$(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+endif
+$(_MODULE)_TARGET := $(TARGET)
+CONCERTO_TARGETS += $($(_MODULE)_TARGET)
+
 # Add the paths from the makefile
 $(_MODULE)_IDIRS += $(SYSIDIRS) $(IDIRS)
-$(_MODULE)_LDIRS += $(SYSLDIRS) $(LDIRS)
+$(_MODULE)_LDIRS += $(LDIRS) $($(TARGET_COMBO_NAME)_LDIRS) $(SYSLDIRS)
 
 # Add any additional libraries which are in this build system
 $(_MODULE)_STATIC_LIBS += $(STATIC_LIBS)
@@ -33,8 +47,11 @@ $(_MODULE)_HEADERS := $(HEADERS)
 
 # Copy over the rest of the variables
 $(_MODULE)_TYPE := $(TARGETTYPE)
-$(_MODULE)_DEFS := $(SYSDEFS) $(DEFS)
+$(_MODULE)_TDEFS := $(TARGET_DEFS)
+$(_MODULE)_DEFS := $(SYSDEFS) $(DEFS) $($(TARGET_COMBO_NAME)_DEFS)
 $(_MODULE)_TEST := $(TESTCASE)
+$(_MODULE)_TESTOPTS := $(TESTOPTS)
+$(_MODULE)_VERSION := $(VERSION)
 
 # Set the Install Path
 $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
@@ -45,47 +62,57 @@ $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 ifneq ($(SKIPBUILD),1)
 
 NEEDS_COMPILER:=
+NEEDS_INSTALL := 
 ifeq ($($(_MODULE)_TYPE),library)
 	NEEDS_COMPILER=1
+	# no install for libs
 else ifeq ($($(_MODULE)_TYPE),dsmo)
 	NEEDS_COMPILER=1
+	NEEDS_INSTALL=1
 else ifeq ($($(_MODULE)_TYPE),exe)
 	NEEDS_COMPILER=1
+	NEEDS_INSTALL=1
 else ifeq ($($(_MODULE)_TYPE),jar)
-	NEEDS_COMPILER=1
+	include $(CONCERTO_ROOT)/compilers/java.mak
+else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
+    include $(CONCERTO_ROOT)/compilers/opencl.mak
+else ifeq ($($(_MODULE)_TYPE),deb)
+    include $(CONCERTO_ROOT)/tools/dpkg.mak
+else ifeq ($($(_MODULE)_TYPE),doxygen)
+    include $(CONCERTO_ROOT)/tools/doxygen.mak
+# \todo add new build types here!    
 endif
 
 ifeq ($(NEEDS_COMPILER),1)
-
+# which compiler does this need?
 ifeq ($(HOST_COMPILER),GCC)
-	include $(CONCERTO_ROOT)/gcc.mak
+	include $(CONCERTO_ROOT)/compilers/gcc.mak
 else ifeq ($(HOST_COMPILER),CLANG)
-	include $(CONCERTO_ROOT)/clang.mak
+	include $(CONCERTO_ROOT)/compilers/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
-	include $(CONCERTO_ROOT)/cl.mak
+	include $(CONCERTO_ROOT)/compilers/cl.mak
 else ifeq ($(HOST_COMPILER),CGT6X)
-	include $(CONCERTO_ROOT)/cgt6x.mak
+	include $(CONCERTO_ROOT)/compilers/cgt6x.mak
 else ifeq ($(HOST_COMPILER),QCC)
-	include $(CONCERTO_ROOT)/qcc.mak
+	include $(CONCERTO_ROOT)/compilers/qcc.mak
 else ifeq ($(HOST_COMPILER),TMS470)
-	include $(CONCERTO_ROOT)/tms470.mak
+	include $(CONCERTO_ROOT)/compilers/tms470.mak
 else ifeq ($(HOST_COMPILER),TIARMCGT)
-	include $(CONCERTO_ROOT)/tiarmcgt.mak
+	include $(CONCERTO_ROOT)/compilers/tiarmcgt.mak
+endif
 endif
 
-include $(CONCERTO_ROOT)/java.mak
-
+ifeq ($(NEEDS_INSTALL),1) 
+ifeq ($(TARGET_OS),Windows_NT)
+    include $(CONCERTO_ROOT)/os/windows.mak
+else 
+    include $(CONCERTO_ROOT)/os/posix.mak
+endif    
 endif
 
-include $(CONCERTO_ROOT)/opencl.mak
-include $(CONCERTO_ROOT)/dpkg.mak
-include $(CONCERTO_ROOT)/doxygen.mak
+else # SKIPBUILD=1
 
-else
-
-$(info Build Skipped for $(_MODULE):$(TARGET))
-
-all %::
+$(info Build Skipped for $(_MODULE):$($(_MODULE)_TARGET))
 
 endif  # ifneq SKIPBUILD
 
@@ -96,11 +123,15 @@ SKIPBUILD:=
 # RULES
 ###################################################
 
-$(_MODULE): $($(_MODULE)_BIN)
+# Each COMBO adds to the list 
+$(_MODULE):: $($(_MODULE)_BIN)
 
+ifneq ($($(_MODULE)_TEST),)
+TESTABLE_MODULES += $(_MODULE)
 .PHONY: $(_MODULE)_test
-$(_MODULE)_test: $($(_MODULE)_TEST) install
-	$(Q)$($(_MODULE)_TEST)
+$(_MODULE)_test: $($(_MODULE)_TDIR)/$($(_MODULE)_TEST) install
+	$(Q)$($(_MODULE)_TESTOPTS)
+endif
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 
@@ -180,16 +211,24 @@ $(eval $(call $(_MODULE)_DOCUMENTS))
 
 endif
 
+define $(_MODULE)_PLATFORM_DEPS
+.PHONY: $($(_MODULE)_PLATFORM_LIBS)
+endef
+
+$(eval $(call $(_MODULE)_PLATFORM_DEPS))
+
 define $(_MODULE)_CLEAN
 .PHONY: clean_target clean $(_MODULE)_clean $(_MODULE)_clean_target
 clean_target:: $(_MODULE)_clean_target
 clean:: $(_MODULE)_clean
 
-$(_MODULE)_clean_target:
+$(_MODULE)_clean_target::
 	$(PRINT) Cleaning $(_MODULE) target $($(_MODULE)_BIN)
 	-$(Q)$(CLEAN) $(call PATH_CONV,$($(_MODULE)_BIN))
-	$(PRINT) Cleaning $(_MODULE) target $($(_MODULE)_MAP)
+ifneq ($($(_MODULE)_MAP),)
+	$(PRINT) Cleaning $(_MODULE) target mapfile $($(_MODULE)_MAP)
 	-$(Q)$(CLEAN) $(call PATH_CONV,$($(_MODULE)_MAP))
+endif
 
 $(_MODULE)_clean: $(_MODULE)_clean_target
 	$(PRINT) Cleaning $($(_MODULE)_ODIR)
@@ -213,6 +252,7 @@ define $(_MODULE)_VARDEF
 $(_MODULE)_vars::
 	$(PRINT) =============================================
 	$(PRINT) _MODULE=$(_MODULE)
+	$(PRINT) $(_MODULE)_TARGET=$($(_MODULE)_TARGET)
 	$(PRINT) $(_MODULE)_BIN =$($(_MODULE)_BIN)
 	$(PRINT) $(_MODULE)_TYPE=$($(_MODULE)_TYPE)
 	$(PRINT) $(_MODULE)_OBJS=$($(_MODULE)_OBJS)
@@ -220,10 +260,15 @@ $(_MODULE)_vars::
 	$(PRINT) $(_MODULE)_ODIR=$($(_MODULE)_ODIR)
 	$(PRINT) $(_MODULE)_TDIR=$($(_MODULE)_TDIR)
 	$(PRINT) $(_MODULE)_SRCS=$($(_MODULE)_SRCS)
+	$(PRINT) $(_MODULE)_IDIRS=$($(_MODULE)_IDIRS)
+	$(PRINT) $(_MODULE)_LDIRS=$($(_MODULE)_LDIRS)
 	$(PRINT) $(_MODULE)_STATIC_LIBS=$($(_MODULE)_STATIC_LIBS)
 	$(PRINT) $(_MODULE)_SHARED_LIBS=$($(_MODULE)_SHARED_LIBS)
+	$(PRINT) $(_MODULE)_SYS_STATIC_LIBS=$($(_MODULE)_SYS_STATIC_LIBS)
 	$(PRINT) $(_MODULE)_SYS_SHARED_LIBS=$($(_MODULE)_SYS_SHARED_LIBS)
 	$(PRINT) $(_MODULE)_CLASSES=$($(_MODULES)_CLASSES)
+	$(PRINT) $(_MODULE)_TEST=$($(_MODULE)_TEST)
+	$(PRINT) $(_MODULE)_DEFS=$($(_MODULE)_DEFS)
 	$(PRINT) =============================================
 endef
 
