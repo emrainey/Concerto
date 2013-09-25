@@ -13,23 +13,28 @@
 # limitations under the License.
 
 define MACHINE_variables
-ifneq ($(filter $($(1)_CPU),x86 i386 i486 i586 i686),)
+ifneq ($(filter $($(1)_CPU),x86 X86 i386 i486 i586 i686),)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=X86
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
 else ifneq ($(filter $($(1)_CPU),Intel64 amd64),)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=X64
     $(1)_ARCH=64
     $(1)_ENDIAN=LITTLE
 else ifeq ($($(1)__CPU),Power Macintosh)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=PPC
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
 else ifeq ($($(1)_CPU),x86_64)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=x86_64
     $(1)_ARCH=64
     $(1)_ENDIAN=LITTLE
 else ifneq ($(filter $($(1)_CPU),ARM M3 M4 A8 A9 A15 armv7l),)
+    HOST_PLATFORM=PANDA
     $(1)_FAMILY=ARM
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
@@ -38,10 +43,12 @@ else ifneq ($(filter $($(1)_CPU),ARM64 aarch64 A53 A54 A57),)
     $(1)_ARCH=64
     $(1)_ENDIAN=LITTLE
 else ifneq ($(filter $($(1)_CPU),C6XSIM C64T C64P C64 C66 C674 C67 C67P),)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=DSP
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
 else ifeq ($($(1)_CPU),EVE)
+    HOST_PLATFORM=PC
     $(1)_FAMILY=EVE
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE

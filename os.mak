@@ -44,17 +44,6 @@ else
     endif
 endif
 
-# TI compilers are only supported on Windows and Linux
-ifeq ($(HOST_OS),$(filter $(HOST_OS),Windows_NT LINUX))
-    ifneq ($(TARGET_CPU),)
-        ifeq ($(TARGET_CPU),$(filter $(TARGET_CPU),C64T C64P C64 C66 C674 C67 C67P))
-            HOST_COMPILER?=CGT6X
-        else ifeq ($(TARGET_CPU),EVE)
-            HOST_COMPILER?=ARP32
-        endif
-    endif
-endif
-
 # PATH_CONV and set HOST_COMPILER if not yet specified
 ifeq ($(HOST_OS),Windows_NT)
     STRING_ESCAPE=$(subst \,\\,$(1))

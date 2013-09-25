@@ -16,6 +16,16 @@ ifndef CGT6X_ROOT
 $(error You must define CGT6X_ROOT!)
 endif
 
+# check for the supported CPU types for this compiler 
+ifeq ($(filter $(TARGET_FAMILY),DSP),)
+$(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
+endif
+
+# check for the support OS types for this compiler
+ifeq ($(filter $(TARGET_OS),SYSBIOS NO_OS),)
+$(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
 CC=$(CGT6X_ROOT)/bin/cl6x
 CP=$(CGT6X_ROOT)/bin/cl6x
 AS=$(CGT6X_ROOT)/bin/cl6x

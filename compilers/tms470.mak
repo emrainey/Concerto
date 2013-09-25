@@ -20,6 +20,16 @@ ifndef TMS470_C_DIR
 $(error You must defined TMS470_C_DIR
 endif
 
+# check for the supported CPU types for this compiler 
+ifeq ($(filter $(TARGET_FAMILY),ARM),)
+$(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
+endif
+
+# check for the support OS types for this compiler
+ifeq ($(filter $(TARGET_OS),SYSBIOS NO_OS),)
+$(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
 CC=$(TMS470_ROOT)/bin/cl470
 CP=$(TMS470_ROOT)/bin/cl470
 AS=$(TMS470_ROOT)/bin/cl470

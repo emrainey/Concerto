@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-EMPTY:=
-SPACE:=$(EMPTY) $(EMPTY)
-
 # Take the Makefile list and remove prelude and finale includes
 # @note MAKEFILE_LIST is an automatic variable!
 ifeq ($(HOST_OS),Windows_NT)
@@ -52,7 +49,7 @@ else
 _MODPATH := $(subst /$(SUBMAKEFILE),,$(THIS_MAKEFILE))
 endif
 
-ifdef BUILD_DEBUG
+ifeq ($(BUILD_DEBUG),1)
 $(info _MODPATH=$(_MODPATH))
 endif
 
@@ -69,17 +66,25 @@ endif
 # If we're calling this from our directory we need to figure out the path
 ifeq ($(_MODDIR),./)
 ifeq ($(HOST_OS),Windows_NT)
-_MODDIR := $(lastword $(subst /, ,$(abspath .)))
+_MODDIR := $(lastword $(subst \,$(SPACE),$(abspath .)))
 else
-_MODDIR := $(lastword $(subst /, ,$(abspath .)))
+_MODDIR := $(lastword $(subst /,$(SPACE),$(abspath .)))
 endif
 endif
 
-#$(info _MODDIR=$(_MODDIR))
+ifeq ($(BUILD_DEBUG),1)
+$(info _MODDIR=$(_MODDIR))
+endif
 
 # if the makefile didn't define the module name, use the directory name
-ifeq ($(_MODULE),)
-_MODULE=$(_MODDIR)
+ifeq ($(BUILD_MULTI_PROJECT),1)
+ifneq ($(_MODULE),)
+_MODULE:=$(_MODDIR)+$(_MODULE)
+else
+_MODULE:=$(_MODDIR)
+endif
+else ifeq ($(_MODULE),)
+_MODULE:=$(_MODDIR)
 endif
 
 # if there's no module name, this isn't going to work!
@@ -87,20 +92,30 @@ ifeq ($(_MODULE),)
 $(error Failed to create module name!)
 endif
 
+_MODULE_NAME := $(_MODULE)
+
+ifneq ($(TARGET_COMBOS),)
+# Append differentiation if in multi-core mode
+_MODULE := $(_MODULE).$(TARGET_PLATFORM).$(TARGET_OS).$(TARGET_CPU).$(TARGET_BUILD)
+endif
+
 # Print some info to show that we're processing the makefiles
-ifdef BUILD_DEBUG
+ifeq ($(BUILD_DEBUG),1)
 $(info Adding Module $(_MODULE) to MODULES)
 endif
 
+# IF there is a conflicting _MODULE, error
+$(if $(filter $(_MODULE),$(MODULES)),$(error MODULE $(_MODULE) already defined in $(MODULES)!))
+
 # Add the current module to the modules list
-MODULES+=$(_MODULE)
+MODULES += $(_MODULE)
 
 # Define the Path to the Source Files (always use the directory) and Header Files
 $(_MODULE)_SDIR := $(HOST_ROOT)/$(_MODPATH)
 $(_MODULE)_IDIRS:= $($(_MODULE)_SDIR)
 
 # Route the output for each module into it's own folder
-$(_MODULE)_ODIR := $(TARGET_OUT)/module_$(_MODULE)
+$(_MODULE)_ODIR := $(TARGET_OUT)/module/$(_MODULE_NAME)
 $(_MODULE)_TDIR := $(TARGET_OUT)
 
 # Set the initial linking directories to the target directory
@@ -137,34 +152,33 @@ endif
 
 dir:: $($(_MODULE)_ODIR)/.gitignore
 
-# Clean out common vars
-ENTRY :=
-DEFS :=
-CFLAGS :=
-LDFLAGS :=
-STATIC_LIBS :=
-SHARED_LIBS :=
-SYS_STATIC_LIBS :=
-SYS_SHARED_LIBS :=
-IDIRS :=
-LDIRS :=
-CSOURCES :=
-CPPSOURCES :=
-ASSEMBLY :=
-JSOURCES :=
-JAVA_LIBS :=
-TARGET :=
-TARGETTYPE :=
-BINS :=
-INCS :=
-INC_SUBPATH :=
-HEADERS :=
-DEFFILE :=
+# Clean out the concerto.mak variables
+_MODULE_VARS := ENTRY DEFS CFLAGS LDFLAGS STATIC_LIBS SHARED_LIBS SYS_STATIC_LIBS
+_MODULE_VARS += SYS_SHARED_LIBS IDIRS LDIRS CSOURCES CPPSOURCES ASSEMBLY JSOURCES
+_MODULE_VARS += KCSOURCES JAVA_LIBS TARGET TARGETTYPE BINS INCS INC_SUBPATH HEADERS
+_MODULE_VARS += MISRA_RULES LINKER_FILES DEFFILE PDFNAME TESTCASE TESTOPTS VERSION
+_MODULE_VARS += SKIPBUILD XDC_GOALS XDC_SUFFIXES XDC_PROFILES XDC_ARGS NOT_PKGS XDC_PACKAGES 
+
+_MODULE_VARS := $(sort $(_MODULE_VARS))
+
+ifeq ($(BUILD_DEBUG),1)
+$(info _MODULE_VARS=$(_MODULE_VARS))
+endif
+
+# Clear out all the variables
+ifeq ($(MAKE_VERSION),3.82)
+$(foreach mvar,$(_MODULE_VARS),$(eval undefine $(mvar)))
+else
+$(foreach mvar,$(_MODULE_VARS),$(eval $(mvar):=$(EMPTY)))
+endif
+
+# Clearing all "MODULE_%" variables
+$(foreach mod,$(filter MODULE_%,$(.VARIABLES)),$(eval $(mod):=$(EMPTY)))
 
 # Define convenience variables
 SDIR := $($(_MODULE)_SDIR)
 TDIR := $($(_MODULE)_TDIR)
-ODIR := $($(_MODULE)_ODIR)
+ODIR := $(call PATH_CONV,$($(_MODULE)_ODIR))
 
 # Pull in the definitions which will be redefined for this makefile
 include $(CONCERTO_ROOT)/definitions.mak

@@ -14,16 +14,23 @@
 
 $(info #######################################################################)
 $(info TARGET_COMBO=$(TARGET_COMBO))
-TARGET_COMBO_WORDS  := $(subst :,$(SPACE),$(TARGET_COMBO))
+TARGET_COMBO_WORDS := $(subst :,$(SPACE),$(TARGET_COMBO))
+TARGET_COMBO_COUNT := $(words $(TARGET_COMBO_WORDS))
 ifeq ($(BUILD_DEBUG),1)
 $(info TARGET_COMBO_WORDS=$(TARGET_COMBO_WORDS))
 endif
+
+ifeq ($(TARGET_COMBO_COUNT),6)
 TARGET_PLATFORM := $(word 1,$(TARGET_COMBO_WORDS))
 TARGET_OS       := $(word 2,$(TARGET_COMBO_WORDS))
 TARGET_CPU      := $(word 3,$(TARGET_COMBO_WORDS))
 TARGET_NUM_CORES:= $(word 4,$(TARGET_COMBO_WORDS))
 TARGET_BUILD    := $(word 5,$(TARGET_COMBO_WORDS))
 HOST_COMPILER   := $(word 6,$(TARGET_COMBO_WORDS))
+else ifeq ($(TARGET_COMBO_COUNT),2)
+TARGET_PLATFORM := $(word 1,$(TARGET_COMBO_WORDS))
+TARGET_BUILD    := $(word 2,$(TARGET_COMBO_WORDS))
+endif
 TARGET_OUT      := $(call MAKE_OUT,$(HOST_ROOT))
 TARGET_DOC      := $(call MAKE_OUT,$(HOST_ROOT))/docs
 
@@ -55,6 +62,7 @@ endif
 
 # Include target definition
 include $(BUILD_TARGET)
+# Some of the target definitions may override the COMBO settings
 
 $(TARGET_COMBO_NAME)_LDIRS := $(foreach proj,$(DEP_PROJECTS),$(call MAKE_OUT,$(proj)))
 
@@ -85,3 +93,9 @@ $(info SCM_VERSION=$(SCM_VERSION))
 endif
 
 include $(TARGET_MAKEFILES)
+
+# Define a rule to take care of libraries that are actual "system" libraries and 
+# are not present in the build, they will look like TDIR libraries.
+$(addprefix $(TARGET_OUT)/%,.so .dll .a .lib)::
+	@echo Required system library $(notdir $@)
+

@@ -16,6 +16,16 @@ ifeq ($(TARGET_FAMILY),$(HOST_FAMILY))
 	CROSS_COMPILE:=
 endif
 
+# check for the supported CPU types for this compiler 
+ifeq ($(filter $(TARGET_FAMILY),X86 x86_64),)
+$(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
+endif
+
+# check for the support OS types for this compiler
+ifeq ($(filter $(TARGET_OS),LINUX CYGWIN),)
+$(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
 CC = $(CROSS_COMPILE)clang
 CP = $(CROSS_COMPILE)clang++
 AS = $(CROSS_COMPILE)as
@@ -65,7 +75,7 @@ $(_MODULE)_DEP_HEADERS := $(foreach inc,$($(_MODULE)_HEADERS),$($(_MODULE)_SDIR)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -Wall -Wno-deprecated
+$(_MODULE)_COPT += -Weverything -Wno-deprecated
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3
@@ -130,6 +140,19 @@ endif
 
 define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
+endef
+
+define $(_MODULE)_ANALYZER
+
+analysis::$(CPPSOURCES:%.cpp=$(ODIR)/%.xml) $(CSOURCES:%.c=$(ODIR)/%.xml)
+
+$(ODIR)/%.xml: $(SDIR)/%.c $(ODIR)/.gitignore
+	@echo [CLANG] Analyzing C $$(notdir $$<)
+	$(Q)$(CC) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
+	
+$(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore
+	@echo [CLANG] Analyzing C++ $$(notdir $$<)
+	$(Q)$(CP) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 endef
 
 define $(_MODULE)_COMPILE_TOOLS

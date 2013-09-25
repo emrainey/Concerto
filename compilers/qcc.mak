@@ -20,11 +20,21 @@ ifeq ($(TARGET_CPU),X86)
 	CROSS_COMPILE:=
 endif
 
+# check for the supported CPU types for this compiler 
+ifeq ($(filter $(TARGET_FAMILY),ARM X86 x86_64),)
+$(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
+endif
+
+# check for the support OS types for this compiler
+ifeq ($(filter $(TARGET_OS),__QNX__),)
+$(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
 CC = $(CROSS_COMPILE)gcc
 CP = $(CROSS_COMPILE)g++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
-LD = $(CROSS_COMPILE)ld
+LD = $(CROSS_COMPILE)g++
 
 ifdef LOGFILE
 LOGGING:=&>$(LOGFILE)

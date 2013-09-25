@@ -52,9 +52,9 @@ $($(_MODULE)_TEX): $($(_MODULE)_DOXYFILE_MOD)
 
 $($(_MODULE)_PDF): $($(_MODULE)_TEX)
 	-$(Q)cp docs/images/* $(TARGET_DOC)/$(_MODULE)/latex/; \
-    cd $(TARGET_DOC)/$(_MODULE)/latex/; \
-	 make pdf; \
-	 pdflatex refman.tex; \
+	 cd $(TARGET_DOC)/$(_MODULE)/latex/; \
+	 pdflatex refman; \
+	 bibtex refman; \
 	 makeindex refman.idx; \
 	 pdflatex refman; 
 	-cd $(TARGET_DOC)/$(_MODULE)/latex/; \

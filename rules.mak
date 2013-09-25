@@ -69,7 +69,7 @@ else
 TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell find $(d)/ -name $(SUBMAKEFILE)))
 endif
 
-# Create the MODULES list by parsing the makefiles.
+# These variables will be appended by each new submakefile included in the combo
 MODULES:=
 CONCERTO_TARGETS :=
 TESTABLE_MODULES :=
@@ -77,16 +77,23 @@ TESTABLE_MODULES :=
 # Define a macro to make the output target path
 MAKE_OUT = $(1)/$(BUILD_OUTPUT)/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
 
+# Define a macro to remove a combo from the combos list if it matches a value
+FILTER_COMBO = $(foreach combo,$(TARGET_COMBOS),$(if $(filter $(1),$(subst :, ,$(combo))),$(combo)))
+FILTER_OUT_COMBO = $(foreach combo,$(TARGET_COMBOS),$(if $(filter $(1),$(subst :, ,$(combo))), ,$(combo))) 
+
+# Macro to include the combo rules
 define CONCERTO_BUILD
 include $(CONCERTO_ROOT)/combo.mak
 endef
+
+include $(CONCERTO_ROOT)/combo_filters.mak
 
 # Multi-core Build (Single Core is degenerative)
 # This actually invokes the above macro
 $(foreach TARGET_COMBO,$(TARGET_COMBOS),$(eval $(call CONCERTO_BUILD)))
 
 ifndef NO_TARGETS
-.PHONY: all dir depend build install uninstall clean clean_target targets scrub vars test docs clean_docs pdf
+.PHONY: all dir depend build install uninstall clean clean_target outputs targets scrub vars test docs clean_docs pdf
 
 depend::
 
@@ -97,6 +104,8 @@ build:: dir depend
 install:: build
 
 uninstall::
+
+outputs:: $(foreach mod,$(MODULES),$(mod)_output)
 
 targets::
 	$(PRINT) MODULES=$(MODULES)

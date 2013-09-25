@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Set the default values if not defined
-VERSION ?= 1.0
+# Set the default values if not defined or empty string
+ifndef VERSION
+VERSION := 1.0
+else ifeq ($(VERSION),)
+VERSION := 1.0
+endif
 
 # Users may use the new syntax of all variables starting with "MODULE_" but may not quite
 # yet so don't erase the value if it's set.
@@ -46,7 +50,7 @@ endif
 $(_MODULE)_HEADERS := $(HEADERS)
 
 # Copy over the rest of the variables
-$(_MODULE)_TYPE := $(TARGETTYPE)
+$(_MODULE)_TYPE := $(strip $(TARGETTYPE))
 $(_MODULE)_TDEFS := $(TARGET_DEFS)
 $(_MODULE)_DEFS := $(SYSDEFS) $(DEFS) $($(TARGET_COMBO_NAME)_DEFS)
 $(_MODULE)_TEST := $(TESTCASE)
@@ -78,6 +82,8 @@ else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
     include $(CONCERTO_ROOT)/compilers/opencl.mak
 else ifeq ($($(_MODULE)_TYPE),deb)
     include $(CONCERTO_ROOT)/tools/dpkg.mak
+else ifeq ($($(_MODULE)_TYPE),tar)
+    include $(CONCERTO_ROOT)/tools/tar.mak 
 else ifeq ($($(_MODULE)_TYPE),doxygen)
     include $(CONCERTO_ROOT)/tools/doxygen.mak
 # \todo add new build types here!    
@@ -102,7 +108,7 @@ else ifeq ($(HOST_COMPILER),TIARMCGT)
 endif
 endif
 
-ifeq ($(NEEDS_INSTALL),1) 
+ifeq ($(NEEDS_INSTALL),1)
 ifeq ($(TARGET_OS),Windows_NT)
     include $(CONCERTO_ROOT)/os/windows.mak
 else 
@@ -123,7 +129,15 @@ SKIPBUILD:=
 # RULES
 ###################################################
 
-# Each COMBO adds to the list 
+.PHONY: $(_MODULE)_output
+define $(_MODULE)_output_list
+$(_MODULE)_output:: 
+	@echo $(1)
+endef
+
+$(foreach bin,$($(_MODULE)_BIN),$(eval $(call $(_MODULE)_output_list,$(bin))))
+
+.PHONY: $(_MODULE)
 $(_MODULE):: $($(_MODULE)_BIN)
 
 ifneq ($($(_MODULE)_TEST),)
@@ -133,7 +147,7 @@ $(_MODULE)_test: $($(_MODULE)_TDIR)/$($(_MODULE)_TEST) install
 	$(Q)$($(_MODULE)_TESTOPTS)
 endif
 
-ifeq ($(strip $($(_MODULE)_TYPE)),library)
+ifeq ($($(_MODULE)_TYPE),library)
 
 define $(_MODULE)_BUILD_LIB
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS)
@@ -146,7 +160,7 @@ $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),exe)
+else ifeq ($($(_MODULE)_TYPE),exe)
 
 define $(_MODULE)_BUILD_EXE
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHARED_LIBS) $($(_MODULE)_DEPS)
@@ -159,7 +173,7 @@ $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
+else ifeq ($($(_MODULE)_TYPE),dsmo)
 
 define $(_MODULE)_BUILD_DSO
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHARED_LIBS) $($(_MODULE)_DEPS)
@@ -173,11 +187,11 @@ $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),objects)
+else ifeq ($($(_MODULE)_TYPE),objects)
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),prebuilt)
+else ifeq ($($(_MODULE)_TYPE),prebuilt)
 
 $(_MODULE)_BIN := $($(_MODULE)_TDIR)/$(TARGET)$(suffix $(PREBUILT))
 build:: $($(_MODULE)_BIN)
@@ -197,15 +211,15 @@ endef
 
 $(eval $(call $(_MODULE)_PREBUILT,$(PREBUILT)))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),jar)
+else ifeq ($($(_MODULE)_TYPE),jar)
 
 $(eval $(call $(_MODULE)_DEPEND_JAR))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),deb)
+else ifneq ($(filter $($(_MODULE)_TYPE),deb tar),)
 
 $(eval $(call $(_MODULE)_PACKAGE))
 
-else ifeq ($(strip $($(_MODULE)_TYPE)),doxygen)
+else ifeq ($($(_MODULE)_TYPE),doxygen)
 
 $(eval $(call $(_MODULE)_DOCUMENTS))
 
@@ -230,7 +244,7 @@ ifneq ($($(_MODULE)_MAP),)
 	-$(Q)$(CLEAN) $(call PATH_CONV,$($(_MODULE)_MAP))
 endif
 
-$(_MODULE)_clean: $(_MODULE)_clean_target
+$(_MODULE)_clean:: $(_MODULE)_clean_target
 	$(PRINT) Cleaning $($(_MODULE)_ODIR)
 	-$(Q)$(CLEANDIR) $(call PATH_CONV,$($(_MODULE)_ODIR))
 
@@ -247,6 +261,7 @@ $(foreach obj,$($(_MODULE)_OBJS),$(eval $(call $(_MODULE)_DEPEND,$(basename $(ob
 $(eval $(call $(_MODULE)_CLEAN))
 $(eval $(call $(_MODULE)_CLEAN_LNK))
 $(eval $(call $(_MODULE)_COMPILE_TOOLS))
+$(eval $(call $(_MODULE)_ANALYZER))
 
 define $(_MODULE)_VARDEF
 $(_MODULE)_vars::

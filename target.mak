@@ -33,7 +33,6 @@ ifeq ($(TARGET_PLATFORM),PC)
         INSTALL_LIB := /usr/lib
         INSTALL_BIN := /usr/bin
         INSTALL_INC := /usr/include
-        TARGET_NUM_CORES ?= 2
         SYSDEFS+=_XOPEN_SOURCE=700 _BSD_SOURCE=1 _GNU_SOURCE=1 WINVER=0x501
     else ifeq ($(TARGET_OS),Windows_NT)
         INSTALL_LIB := "${windir}\\system32"

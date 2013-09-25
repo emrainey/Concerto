@@ -20,6 +20,16 @@ ifeq ($(TARGET_CPU),X86)
 	CROSS_COMPILE:=
 endif
 
+# check for the supported CPU types for this compiler 
+ifeq ($(filter $(TARGET_FAMILY),ARM X86 x86_64),)
+$(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
+endif 
+
+# check for the support OS types for this compiler
+ifeq ($(filter $(TARGET_OS),LINUX CYGWIN),)
+$(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
 CC = $(CROSS_COMPILE)gcc
 CP = $(CROSS_COMPILE)g++
 AS = $(CROSS_COMPILE)as
@@ -76,10 +86,12 @@ else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3
 endif
 
+ifeq ($(TARGET_FAMILY),ARM)
 ifeq ($(TARGET_ENDIAN),LITTLE)
 $(_MODULE)_COPT += -mlittle-endian
 else
 $(_MODULE)_COPT += -mbig-endian
+endif
 endif
 
 ifeq ($(TARGET_FAMILY),ARM)
@@ -104,7 +116,7 @@ $(_MODULE)_COPT += -mcpu=cortex-a15
 endif
 
 ifeq ($(TARGET_ARCH),32)
-ifneq ($(TARGET_FAMILY),ARM)
+ifeq ($(TARGET_FAMILY),ARM)
 $(_MODULE)_COPT += -m32 -fno-stack-protector
 endif
 endif
