@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ifeq ($(USE_OPENCL),true)
+OCL_LIB ?= OpenCL
 	ifeq ($(HOST_OS),Windows_NT)
 		ifeq ($(OPENCL_ROOT),)
 			$(error OPENCL_ROOT must be defined to use OPENCL_ROOT)
@@ -20,14 +21,14 @@ ifeq ($(USE_OPENCL),true)
 		IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
 		LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64
 		ifeq ($(filter $(PLATFORM_LIBS),OpenCL),)
-		    PLATFORM_LIBS += OpenCL
+		    PLATFORM_LIBS += $(OCL_LIB)
 		endif
 	else ifeq ($(HOST_OS),LINUX)
 		# User should install GLUT/Mesa via package system
 		IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
 		LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64		
 		ifeq ($(filter $(PLATFORM_LIBS),OpenCL),)
-			PLATFORM_LIBS += OpenCL
+			PLATFORM_LIBS += $(OCL_LIB)
 		endif
 	else ifeq ($(HOST_OS),DARWIN)
 		# User should have XCode install OpenCL

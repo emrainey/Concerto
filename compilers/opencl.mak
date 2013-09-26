@@ -19,9 +19,7 @@ $(_MODULE)_OBJS   := $($(_MODULE)_BIN)
 ifeq ($(CL_BUILD_RUNTIME),)
 
 # OpenCL-Environment Compiler Support
-ifeq ($(HOST_OS),Windows_NT)
-CL:=$($(_MODULE)_TDIR)/clcompiler.exe
-else ifeq ($(HOST_OS),CYGWIN)
+ifneq ($(filter $(HOST_OS),Windows_NT CYGWIN),)
 CL:=$($(_MODULE)_TDIR)/clcompiler.exe
 else
 CL:=$($(_MODULE)_TDIR)/clcompiler
@@ -44,14 +42,14 @@ $(_MODULE)_KFLAGS+=$(foreach inc,$($(_MODULE)_IDIRS),-I$(inc)) $(foreach def,$($
 endif
 
 define $(_MODULE)_COMPILE_TOOLS
-$($(_MODULE)_SDIR)/%.h: $($(_MODULE)_SDIR)/%.cl $(CL)
+$($(_MODULE)_SDIR)/kernel_%.h: $($(_MODULE)_SDIR)/kernel_%.cl $(CL)
 	@echo [PURE] Compiling OpenCL Kernel $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CL)) -n -f $$(call PATH_CONV,$$<) -d $(CL_USER_DEVICE_COUNT) -t $(CL_USER_DEVICE_TYPE) -h $$(call PATH_CONV,$$@) -W "$($(_MODULE)_KFLAGS)"
 endef
 
 else
 define $(_MODULE)_COMPILE_TOOLS
-$($(_MODULE)_SDIR)/%.h:
+$($(_MODULE)_SDIR)/kernel_%.h:
 	@echo Touching $$@
 	$(Q)$$(call $(TOUCH),$$@)
 endef
