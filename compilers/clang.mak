@@ -22,7 +22,7 @@ $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
 
 # check for the support OS types for this compiler
-ifeq ($(filter $(TARGET_OS),LINUX CYGWIN),)
+ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN),)
 $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 
@@ -70,8 +70,9 @@ $(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/li
 endif
 $(_MODULE)_DEP_HEADERS := $(foreach inc,$($(_MODULE)_HEADERS),$($(_MODULE)_SDIR)/$(inc).h)
 
-#$(_MODULE)_COPT := $(CFLAGS)
-#$(_MODULE)_LOPT := $(LDFLAGS)
+# We need these to do things like OpenCL/GL/etc.
+$(_MODULE)_COPT := $(CFLAGS)
+$(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
@@ -79,7 +80,7 @@ $(_MODULE)_COPT += -Weverything -Wno-deprecated
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3
-$(_MODULE)_LOPT += -g
+#$(_MODULE)_LOPT += -g
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3
 endif
@@ -105,7 +106,7 @@ ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU)
 endif
 $(_MODULE)_LDFLAGS  += $($(_MODULE)_LOPT)
-$(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf)) $($(_MODULE)_COPT)
+$(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf)) $($(_MODULE)_FRAMEWORKS) $($(_MODULE)_COPT)
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
 
 ifdef DEBUG
@@ -128,7 +129,7 @@ $(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($
 $(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
 ifeq ($(TARGET_OS),DARWIN)
 $(_MODULE)_LINK_DSO   := $(LD) -dylib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
-$(_MODULE)_LINK_EXE   := $(LD) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
+$(_MODULE)_LINK_EXE   := $(LD) $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
 else
 $(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION)
 $(_MODULE)_LINK_EXE   := $(LD) $(EXPORTER) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)

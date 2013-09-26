@@ -26,7 +26,7 @@ $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif 
 
 # check for the support OS types for this compiler
-ifeq ($(filter $(TARGET_OS),LINUX CYGWIN),)
+ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN),)
 $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 

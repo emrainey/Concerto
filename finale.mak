@@ -19,6 +19,9 @@ else ifeq ($(VERSION),)
 VERSION := 1.0
 endif
 
+-include $(CONCERTO_ROOT)/components/glut.mak
+-include $(CONCERTO_ROOT)/components/opencl.mak
+
 # Users may use the new syntax of all variables starting with "MODULE_" but may not quite
 # yet so don't erase the value if it's set.
 #$(foreach mvar,$(_MODULE_VARS),$(if $(MODULE_$(mvar)),,$(eval MODULE_$(mvar):=$(value $(mvar)))))
