@@ -27,9 +27,11 @@ endif
 #$(foreach mvar,$(_MODULE_VARS),$(if $(MODULE_$(mvar)),,$(eval MODULE_$(mvar):=$(value $(mvar)))))
 
 ifeq ($(BUILD_DEBUG),1)
+$(info #### $(_MODULE) ########################################################)
 $(foreach mvar,$(sort $(_MODULE_VARS)),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
-#$(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+$(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
 endif
+
 $(_MODULE)_TARGET := $(TARGET)
 CONCERTO_TARGETS += $($(_MODULE)_TARGET)
 
@@ -65,6 +67,11 @@ $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
 
 # For debugging the build system
 $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
+
+ifeq ($(BUILD_DEBUG),1)
+$(foreach mvar,$(sort $(filter $(_MODULE)_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+$(info #### $(_MODULE) ########################################################)
+endif
 
 ifneq ($(SKIPBUILD),1)
 

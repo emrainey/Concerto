@@ -25,15 +25,6 @@ else
 CL:=$($(_MODULE)_TDIR)/clcompiler
 endif
 
-# OpenCL-Environment Defines
-ifeq ($(HOST_OS),CYGWIN)
-DEFS+=KDIR="\"$(KDIR)\"" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="\"$(CL_USER_DEVICE_TYPE)\""
-else ifeq ($(HOST_OS),Windows_NT)
-DEFS+=KDIR="$(call PATH_CONV,$(KDIR))\\" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)"
-else
-DEFS+=KDIR="$(KDIR)" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)"
-endif
-
 ifeq ($(HOST_OS),CYGWIN)
 # The Clang/LLVM is a Windows Path Compiler
 $(_MODULE)_KFLAGS+=$(foreach inc,$($(_MODULE)_IDIRS),-I$(call P2W_CONV,$(inc))) $(foreach def,$($(_MODULE)_DEFS),-D$(def))
