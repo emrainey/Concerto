@@ -16,7 +16,7 @@ ifeq ($(SCM_ROOT),)
 # wildcard is required for windows since realpath doesn't return NULL if not found
 SCM_ROOT := $(wildcard $(realpath .svn))
 ifneq ($(SCM_ROOT),)
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(SCM_ROOT))
 $(info Subversion is used)
 endif
@@ -28,7 +28,7 @@ ifeq ($(SCM_ROOT),)
 # wildcard is required for windows since realpath doesn't return NULL if not found
 SCM_ROOT := $(wildcard $(realpath .git))
 ifneq ($(SCM_ROOT),)
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(SCM_ROOT))
 $(info GIT is used)
 endif

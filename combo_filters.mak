@@ -60,7 +60,7 @@ REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root))
 # The list of targets which can not be built
 TARGET_COMBOS := $(call FILTER_OUT_COMBO,$(foreach root,$(REMOVE_ROOTS),$(subst _ROOT,,$(root))))
 
-#ifeq ($(BUILD_DEBUG),1)
+#ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Remaining COMBOS = $(TARGET_COMBOS))
 #endif
 

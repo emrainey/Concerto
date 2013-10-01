@@ -16,7 +16,7 @@ $(info #######################################################################)
 $(info TARGET_COMBO=$(TARGET_COMBO))
 TARGET_COMBO_WORDS := $(subst :,$(SPACE),$(TARGET_COMBO))
 TARGET_COMBO_COUNT := $(words $(TARGET_COMBO_WORDS))
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info TARGET_COMBO_WORDS=$(TARGET_COMBO_WORDS))
 endif
 
@@ -85,7 +85,7 @@ $(info TARGET_OUT=$(TARGET_OUT))
 $(info TARGET_DOC=$(TARGET_DOC))
 $(info $(TARGET_COMBO_NAME)_DEFS = $($(TARGET_COMBO_NAME)_DEFS))
 $(info $(TARGET_COMBO_NAME)_LDIRS = $($(TARGET_COMBO_NAME)_LDIRS))
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info TARGET_MAKEFILES=$(TARGET_MAKEFILES))
 endif
 $(info SCM_ROOT=$(SCM_ROOT))

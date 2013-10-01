@@ -26,14 +26,14 @@ endif
 # yet so don't erase the value if it's set.
 #$(foreach mvar,$(_MODULE_VARS),$(if $(MODULE_$(mvar)),,$(eval MODULE_$(mvar):=$(value $(mvar)))))
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info #### $(_MODULE) ########################################################)
 $(foreach mvar,$(sort $(_MODULE_VARS)),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
 $(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
 endif
 
 $(_MODULE)_TARGET := $(TARGET)
-CONCERTO_TARGETS += $($(_MODULE)_TARGET)
+CONCERTO_TARGETS += $(if $(filter $(CONCERTO_TARGETS),$(TARGET)),,$($(_MODULE)_TARGET))
 
 # Add the paths from the makefile
 $(_MODULE)_IDIRS += $(SYSIDIRS) $(IDIRS)
@@ -68,7 +68,7 @@ $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
 # For debugging the build system
 $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(foreach mvar,$(sort $(filter $(_MODULE)_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
 $(info #### $(_MODULE) ########################################################)
 endif

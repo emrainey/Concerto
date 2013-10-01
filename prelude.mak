@@ -49,7 +49,7 @@ else
 _MODPATH := $(subst /$(SUBMAKEFILE),,$(THIS_MAKEFILE))
 endif
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info _MODPATH=$(_MODPATH))
 endif
 
@@ -58,9 +58,9 @@ $(error $(THIS_MAKEFILE) failed to get module path)
 endif
 
 ifeq ($(HOST_OS),Windows_NT)
-_MODDIR := $(lastword $(subst \,$(SPACE),$(_MODPATH)))
+_MODDIR := $(subst \,.,$(_MODPATH))
 else
-_MODDIR := $(lastword $(subst /,$(SPACE),$(_MODPATH)))
+_MODDIR := $(subst /,.,$(_MODPATH))
 endif
 
 # If we're calling this from our directory we need to figure out the path
@@ -72,7 +72,7 @@ _MODDIR := $(lastword $(subst /,$(SPACE),$(abspath .)))
 endif
 endif
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info _MODDIR=$(_MODDIR))
 endif
 
@@ -100,7 +100,7 @@ _MODULE := $(_MODULE).$(TARGET_PLATFORM).$(TARGET_OS).$(TARGET_CPU).$(TARGET_BUI
 endif
 
 # Print some info to show that we're processing the makefiles
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Adding Module $(_MODULE) to MODULES)
 endif
 
@@ -141,11 +141,11 @@ endif
 # Define a ".gitignore" file which will help in making sure the module's output
 # folder always exists.
 %.gitignore:
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 	$(PRINT) Creating Folder $(dir $@)
 endif
 	-$(Q)$(MKDIR) $(call PATH_CONV,$(dir $@))
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 	$(PRINT) Touching $@
 endif
 	-$(Q)$(TOUCH) $(call PATH_CONV,$@)
@@ -162,7 +162,7 @@ _MODULE_VARS += USE_GLUT USE_OPENCL
 
 _MODULE_VARS := $(sort $(_MODULE_VARS))
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info _MODULE_VARS=$(_MODULE_VARS))
 endif
 

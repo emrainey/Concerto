@@ -15,7 +15,7 @@
 ifeq ($(TARGET_OS),LINUX)
 
 CHECK_DPKG := $(shell which dpkg)
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info CHECK_DPKG=$(CHECK_DPKG))
 endif
 ifneq ($(CHECK_DPKG),)
@@ -31,7 +31,7 @@ $(_MODULE)_PKG_FLDR    := $($(_MODULE)_TDIR)/$($(_MODULE)_PKG_NAME)
 $(_MODULE)_PKG         := $($(_MODULE)_PKG_NAME)$(PKG_EXT)
 $(_MODULE)_BIN         := $($(_MODULE)_TDIR)/$($(_MODULE)_PKG)
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_FLDR=$($(_MODULE)_PKG_FLDR))
 endif
 
@@ -41,7 +41,7 @@ $(_MODULE)_PKG_INC := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_INC)/$($(_MODUL
 $(_MODULE)_PKG_BIN := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_BIN)
 $(_MODULE)_PKG_CFG := $($(_MODULE)_PKG_FLDR)/DEBIAN
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_LIB=$($(_MODULE)_PKG_LIB))
 $(info $(_MODULE)_PKG_INC=$($(_MODULE)_PKG_INC))
 $(info $(_MODULE)_PKG_BIN=$($(_MODULE)_PKG_BIN))
@@ -53,13 +53,13 @@ $(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_L
                       $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)) \
                       $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc)))
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_DEPS=$($(_MODULE)_PKG_DEPS))
 endif
 
 $(_MODULE)_OBJS := $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS)
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_OBJS=$($(_MODULE)_OBJS))
 endif
 
