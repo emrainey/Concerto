@@ -132,7 +132,7 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
 					   $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) \
 					   $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
 					   $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib)) \
-					   $(foreach lib,$($(_MODULE)_PLATFORM_LIBS),-l$(lib))
+					   $(foreach lib,$(PLATFORM_LIBS),-l$(lib))
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
 ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU) $(LDFLAGS)
