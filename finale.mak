@@ -68,11 +68,6 @@ $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
 # For debugging the build system
 $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(foreach mvar,$(sort $(filter $(_MODULE)_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
-$(info #### $(_MODULE) ########################################################)
-endif
-
 ifneq ($(SKIPBUILD),1)
 
 NEEDS_COMPILER:=
@@ -298,6 +293,11 @@ $(_MODULE)_vars::
 endef
 
 $(eval $(call $(_MODULE)_VARDEF))
+
+ifeq ($(SHOW_MAKEDEBUG),1)
+$(foreach mvar,$(sort $(filter $(_MODULE)_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+$(info #### $(_MODULE) ########################################################)
+endif
 
 # Now clear out the module variable for repeat definitions
 _MODULE :=

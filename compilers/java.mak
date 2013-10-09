@@ -14,7 +14,7 @@
 
 ifeq ($($(_MODULE)_TYPE),jar)
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Building JAR file $(_MODULE))
 endif
 
@@ -40,7 +40,7 @@ $(_MODULE)_JAVA_DEPS := $(foreach lib,$($(_MODULE)_JAVA_LIBS),$($(_MODULE)_TDIR)
 $(_MODULE)_CLASSPATH += $($(_MODULE)_JAVA_DEPS)
 endif
 
-ifeq ($(BUILD_DEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info CLASSPATH=$($(_MODULE)_CLASSPATH))
 endif
 $(_MODULE)_CLASSPATH := $(subst $(SPACE),:,$($(_MODULE)_CLASSPATH))

@@ -18,7 +18,7 @@ ifneq ($(filter $($(1)_CPU),x86 X86 i386 i486 i586 i686),)
     $(1)_FAMILY=X86
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
-else ifneq ($(filter $($(1)_CPU),Intel64 amd64),)
+else ifneq ($(filter $($(1)_CPU),Intel64 amd64 X64),)
     HOST_PLATFORM=PC
     $(1)_FAMILY=X64
     $(1)_ARCH=64
