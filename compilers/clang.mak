@@ -83,7 +83,7 @@ $(_MODULE)_COPT += -Weverything -Wno-deprecated
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3
 #$(_MODULE)_LOPT += -g
-else ifeq ($(TARGET_BUILD),release)
+else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT += -O3
 endif
 

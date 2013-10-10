@@ -71,7 +71,7 @@ $(_MODULE)_COPT += -fms-extensions -fPIC -Wno-write-strings
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb -ggdb3 -Q
 $(_MODULE)_LOPT += -g
-else ifeq ($(TARGET_BUILD),release)
+else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT += -O3
 endif
 

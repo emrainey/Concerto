@@ -63,7 +63,7 @@ $($(_MODULE)_PDF): $($(_MODULE)_TEX)
 $(_MODULE)_docs:: $($(_MODULE)_HTML) $($(_MODULE)_PDF) $($(_MODULE)_ODIR)/.gitignore
 	$(Q)tar zcvf $($(_MODULE)_BIN) $(TARGET_DOC)/$(_MODULE)/html $($(_MODULE)_PDF)
 
-$(_MODULE)_BIN:: $(_MODULE)_docs
+$($(_MODULE)_BIN):: $(_MODULE)_docs
 
 docs:: $(_MODULE)_docs
 	$(Q)echo Building docs for $(_MODULE)

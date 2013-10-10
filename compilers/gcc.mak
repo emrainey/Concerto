@@ -85,8 +85,13 @@ $(_MODULE)_COPT += -Wall -fms-extensions -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb -ggdb3 -gdwarf-2
-else ifeq ($(TARGET_BUILD),release)
+else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT += -O3
+endif
+
+ifeq ($(TARGET_BUILD),production)
+# Remove all symbols.
+$(_MODULE)_LOPT += -s
 endif
 
 ifeq ($(TARGET_FAMILY),ARM)

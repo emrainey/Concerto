@@ -14,6 +14,11 @@
 
 # Any OS can build itself and maybe some secondary OS's
 
+ifeq ($(SHOW_MAKEDEBUG),1)
+$(info Starting COMBOS:)
+$(foreach combo,$(TARGET_COMBOS),$(info TARGET_COMBOS+=$(combo)))
+endif
+
 ifeq ($(HOST_PLATFORM),PC)
 ifneq ($(HOST_CPU),ARM)
 # PANDA ARM is self-hosting
@@ -57,10 +62,10 @@ COMPILER_ROOTS := TIARMCGT_ROOT TMS470_ROOT ARP32CGT_ROOT CGT6X_ROOT CGT7X_ROOT
 # The compiler which do not have roots set.
 REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root)),undefined),$(root)))
 
-# The list of targets which can not be built
+# Remove the list of combos which can not be built
 TARGET_COMBOS := $(call FILTER_OUT_COMBO,$(foreach root,$(REMOVE_ROOTS),$(subst _ROOT,,$(root))))
 
-#ifeq ($(SHOW_MAKEDEBUG),1)
-$(info Remaining COMBOS = $(TARGET_COMBOS))
-#endif
-
+ifeq ($(SHOW_MAKEDEBUG),1)
+$(info Remaining COMBOS:)
+$(foreach combo,$(TARGET_COMBOS),$(info TARGET_COMBOS+=$(combo)))
+endif

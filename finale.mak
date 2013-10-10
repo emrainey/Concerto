@@ -142,6 +142,9 @@ endef
 
 $(foreach bin,$($(_MODULE)_BIN),$(eval $(call $(_MODULE)_output_list,$(bin))))
 
+.PHONY: $(TARGET)
+$(TARGET):: $(_MODULE)
+
 .PHONY: $(_MODULE)
 $(_MODULE):: $($(_MODULE)_BIN)
 

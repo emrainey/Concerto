@@ -47,7 +47,10 @@ $(_MODULE)_CLASSPATH := $(subst $(SPACE),:,$($(_MODULE)_CLASSPATH))
 JC_OPTS              := -deprecation -classpath $($(_MODULE)_CLASSPATH) -sourcepath $($(_MODULE)_SDIR) -d $($(_MODULE)_ODIR)
 ifeq ($(TARGET_BUILD),debug)
 JC_OPTS              += -g -verbose
+else ifneq ($(filter $(TARGET_BUILD),release production),)
+# perform obfuscation?
 endif
+
 ifdef MANIFEST
 $(_MODULE)_MANIFEST  := -m $(MANIFEST)
 MANIFEST             :=

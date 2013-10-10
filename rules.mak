@@ -37,6 +37,8 @@ BUILD_PLATFORM ?= $(CONCERTO_ROOT)/platform.mak
 DIRECTORIES ?= source
 ifeq ($(NO_OPTIMIZE),1)
 TARGET_BUILD?=debug
+else ifeq ($(FINAL_BUILD),1)
+TARGET_BUILD?=production
 else
 TARGET_BUILD?=release
 endif
@@ -117,7 +119,8 @@ modules::
 	$(foreach mod,$(MODULES),$(info MODULES+=$(mod)))
 
 targets::
-	$(PRINT) Concerto targets are the names of the binaries generated.
+	$(PRINT) Concerto targets are the names of the binaries generated. 
+	$(PRINT) Targets are invokable makefile rules. However, each combo version will be built.
 	$(foreach target,$(CONCERTO_TARGETS),$(info CONCERTO_TARGETS+=$(target)))
 
 scrub::
@@ -185,6 +188,7 @@ help:
 	$(PRINT) "SHOW_COMMANDS=1 - shows all commands given the shell"
 	$(PRINT) "SHOW_MAKEDEBUG=1 - shows extra makefile debugging"
 	$(PRINT) "NO_OPTIMIZE=1 - Controls setting of TARGET_BUILD default. When set to '1', TARGET_BUILD=debug, else the default."
+	$(PRINT) "FINAL_BUILD=1 - Puts build into production mode. All debug should be removed, optimizations on and symbols stripped"
 	$(PRINT)
 	$(PRINT) "Overridible Concerto Variables:"
 	$(PRINT) "HOST_ROOT - the path to the root of build system to scan for $(SUBMAKEFILE). Defaults to the 'abspath' current directory."

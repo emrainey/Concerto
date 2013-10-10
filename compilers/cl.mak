@@ -63,16 +63,16 @@ $(_MODULE)_COPT+=/Wp64
 endif
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT+=/Od /MDd /Gm /Zi /RTC1
-else ifeq ($(TARGET_BUILD),release)
+else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT+=/Ox /MD
 endif
 
 $(_MODULE)_INCLUDES := $(foreach inc,$(call PATH_CONV,$($(_MODULE)_IDIRS)),/I$(inc))
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),/D$(def))
 $(_MODULE)_LIBRARIES:= $(foreach ldir,$(call PATH_CONV,$($(_MODULE)_LDIRS)),/LIBPATH:$(ldir)) $(foreach lib,$(STATIC_LIBS),$(lib).lib) $(foreach lib,$(SHARED_LIBS),$(lib).lib) $(foreach lib,$(SYS_STATIC_LIBS),$(lib).lib) $(foreach lib,$(SYS_SHARED_LIBS),$(lib).lib) $(foreach lib,$(PLATFORM_LIBS),$(lib).lib)
-$(_MODULE)_ARFLAGS  := /nologo /MACHINE:$(TARGET_CPU)
+$(_MODULE)_ARFLAGS  := /nologo /MACHINE:$(TARGET_FAMILY)
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
-$(_MODULE)_LDFLAGS  := /nologo /MACHINE:$(TARGET_CPU)
+$(_MODULE)_LDFLAGS  := /nologo /MACHINE:$(TARGET_FAMILY)
 $(_MODULE)_CFLAGS   := /c /nologo $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
 
 ifdef ENTRY
