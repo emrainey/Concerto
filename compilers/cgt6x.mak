@@ -22,8 +22,12 @@ $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
 
 # check for the support OS types for this compiler
-ifeq ($(filter $(TARGET_OS),SYSBIOS NO_OS),)
+ifeq ($(filter $(TARGET_OS),SYSBIOS NO_OS LINUX),)
 $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
+endif
+
+ifeq ($(TARGET_OS),LINUX)
+$(if $(C6X_UCLINUX_ROOT),,$(error C6X_UCLINUX_ROOT must be defined to support LINUX on C6x targets)
 endif
 
 CC=$(CGT6X_ROOT)/bin/cl6x
@@ -100,6 +104,14 @@ ifeq ($(DEBUG_PIPELINE),1)
 $(_MODULE)_COPT += --debug_software_pipeline
 endif
 
+ifeq ($(TARGET_OS),LINUX)
+$(_MODULE)_COPT += --linux --gcc
+$(_MODULE)_IDIRS += $(C6X_UCLINUX_ROOT)/libc/usr/include
+$(_MODULE)_DEFS += __GNUC_MINOR__=3 __extensions__ __nothrow__ \ 
+	__STDC__="unsigned int" __WINT_TYPE__="unsigned int" \
+	__WCHAR_TYPE__="unsigned int" __gnuc_va_list=va_list
+endif
+
 $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
 $(_MODULE)_INCLUDES := $(foreach inc,$($(_MODULE)_IDIRS),-I="$(basename $(inc))") $(foreach inc,$($(_MODULE)_SYSIDIRS),-I="$(basename $(inc))")
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-D=$(def))
@@ -124,15 +136,15 @@ build:: $($(_MODULE)_BIN)
 endef
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.c
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.c
 	@echo [C6X] Compiling C $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CC) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fc=$$< $(LOGGING)) $($(_MODULE)_MISRA)
 
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.cpp
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.cpp
 	@echo [C6X] Compiling C++ $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(CP) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fp=$$< $(LOGGING))
 
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.asm
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.asm
 	@echo [C6X] Assembling $$(notdir $$<)
 	$(Q)$$(call PATH_CONV,$(AS) $($(_MODULE)_AFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fa=$$< $(LOGGING))
 

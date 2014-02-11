@@ -16,15 +16,13 @@
 # The list returned is relative to the module source directory
 ifeq ($(HOST_OS),Windows_NT)
 # Always produce list using foward slashes
-_SDIR := $(call PATH_CONV,$(SDIR)/)
-all-type-files-in = $(subst \,/,$(subst $(_SDIR),,$(shell cd $(_SDIR)$(2) && cmd.exe /C dir /b /s $(1))))
-all-type-files-in-this-a = $(subst \,/,$(subst $(_SDIR),,$(shell cd $(_SDIR)$(2) && cmd.exe /C dir /b $(1))))
+all-type-files-in-this-a = $(subst \,/,$(subst $(_SDIR),,$(shell cmd.exe /C dir /b $(_SDIR)$(2)$(PATH_SEP)$(1))))
 all-type-files-in-this = $(foreach kern,$(call all-type-files-in-this-a,$(1),$(2)),$(2)/$(kern))
 else
-all-type-files-in = $(subst $(SDIR)/,,$(shell find $(SDIR)/$(2) -name '$(1)'))
 all-type-files-in-this = $(subst $(SDIR)/,,$(shell find $(SDIR)/$(2) -maxdepth 1 -name '$(1)'))
 endif
-all-type-files = $(call all-type-files-in,$(1),)
+all-type-files-in = $(notdir $(wildcard $(2)/$(1)))
+all-type-files = $(call all-type-files-in,$(1),$(SDIR))
 all-java-files = $(call all-type-files,*.java)
 all-c-files    = $(call all-type-files,*.c)
 all-cpp-files  = $(call all-type-files,*.cpp)

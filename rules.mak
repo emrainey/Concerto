@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SHELL = /bin/sh
-
 # Basic definitions for parsing and tokenizing
 EMPTY:=
 SPACE:=$(EMPTY) $(EMPTY)
 COMMA:=$(EMPTY),$(EMPTY)
 TOKENS=$(subst :,$(SPACE),$(1))
+# Macros for text manipulation
+lowercase = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+uppercase = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$1))))))))))))))))))))))))))
+rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 # Define all but don't do anything with it yet.
 .PHONY: all
@@ -34,6 +36,7 @@ CONCERTO_ROOT ?= $(HOST_ROOT)/$(BUILD_FOLDER)
 BUILD_OUTPUT ?= out
 BUILD_TARGET ?= $(CONCERTO_ROOT)/target.mak
 BUILD_PLATFORM ?= $(CONCERTO_ROOT)/platform.mak
+BUILD_PROJECT ?= $(CONCERTO_ROOT)/project.mak
 DIRECTORIES ?= source
 ifeq ($(NO_OPTIMIZE),1)
 TARGET_BUILD?=debug
@@ -70,11 +73,7 @@ include $(CONCERTO_ROOT)/scm.mak
 TARGET_COMBOS ?= PC:$(HOST_OS):$(HOST_CPU):0:$(TARGET_BUILD):$(HOST_COMPILER)
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
-ifeq ($(HOST_OS),Windows_NT)
-TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell cd $(d) && cmd.exe /C dir /b /s $(SUBMAKEFILE)))
-else
-TARGET_MAKEFILES:=$(foreach d,$(DIRECTORIES),$(shell find $(d)/ -name $(SUBMAKEFILE)))
-endif
+TARGET_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(foreach d,$(DIRECTORIES),$(strip $(call rwildcard,$(d),*.mak))))
 
 # These variables will be appended by each new submakefile included in the combo
 MODULES:=
@@ -82,7 +81,7 @@ CONCERTO_TARGETS :=
 TESTABLE_MODULES :=
 
 # Define a macro to make the output target path
-MAKE_OUT = $(1)/$(BUILD_OUTPUT)/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)
+MAKE_OUT = $(1)/$(BUILD_OUTPUT)/$(TARGET_PLATFORM)/$(TARGET_CPU)/$(TARGET_OS)/$(TARGET_BUILD)
 
 # Define a macro to remove a combo from the combos list if it matches a value
 FILTER_COMBO = $(foreach combo,$(TARGET_COMBOS),$(if $(filter $(1),$(subst :, ,$(combo))),$(combo)))
@@ -124,8 +123,8 @@ targets::
 	$(foreach target,$(CONCERTO_TARGETS),$(info CONCERTO_TARGETS+=$(target)))
 
 scrub::
-	$(PRINT) Deleting $(BUILD_OUTPUT)
-	-$(Q)$(CLEANDIR) $(call PATH_CONV,$(BUILD_OUTPUT))
+	$(if $(wildcard $(BUILD_OUTPUT)),$(info Deleting $(BUILD_OUTPUT)),$(info BUILD_OUTPUT does not exist!))
+	$(if $(wildcard $(BUILD_OUTPUT)),-$(Q)$(CLEANDIR) $(call PATH_CONV,$(BUILD_OUTPUT)))
 
 vars:: $(foreach mod,$(MODULES),$(mod)_vars)
 	$(PRINT) HOST_ROOT=$(HOST_ROOT)
@@ -200,5 +199,7 @@ help:
 	$(PRINT) "BUILD_PLATFORM - the location and name of the platform specializing makefile. Defaults to 'CONCERTO_ROOT'/platform.mak"
 	$(PRINT) "TARGET_BUILD - Either 'release' (default) or 'debug'."
 	$(PRINT) 
+
+-include $(CONCERTO_ROOT)/project.mak
 
 endif

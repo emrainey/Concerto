@@ -32,7 +32,7 @@ endif
 
 CC=$(TIARMCGT_ROOT)/bin/armcl
 CP=$(TIARMCGT_ROOT)/bin/armcl
-AS=$(TIARMCGT_ROOT)/bin/armcl
+AS=$(TIARMCGT_ROOT)/bin/armasm
 AR=$(TIARMCGT_ROOT)/bin/armar
 LD=$(TIARMCGT_ROOT)/bin/armcl
 
@@ -65,7 +65,6 @@ $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$(ODIR)/%.$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$(ODI
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$(TDIR)/$(LIB_PRE)$(lib).$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$(TDIR)/$(LIB_PRE)$(lib).$(LIB_EXT))
-$(_MODULE)_COPT := --gcc
 $(_MODULE)_IDIRS += $(TIARMCGT_ROOT)/include
 $(_MODULE)_LDIRS += $(TIARMCGT_ROOT)/lib
 
@@ -78,8 +77,14 @@ else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT += --opt_level=3 --gen_opt_info=2
 endif
 
-$(_MODULE)_COPT +=--endian=little --abi=eabi
-ifeq ($(TARGET_CPU),A8)
+ifeq ($(TARGET_ENDIAN),LITTLE)
+$(_MODULE)_COPT += --endian=little
+else
+$(_MODULE)_COPT += --endian=big
+endif
+
+$(_MODULE)_COPT += --abi=eabi
+ifneq ($(filter $(TARGET_CPU),A8 A8F),)
 $(_MODULE)_COPT +=-mv=7A8 --float_support=vfpv3
 else ifeq ($(TARGET_CPU),M3)
 $(_MODULE)_COPT +=-mv=7M3
@@ -117,17 +122,17 @@ $(_MODULE)_LINK_EXE   := $(call PATH_CONV,$(LD) $($(_MODULE)_LDFLAGS) $($(_MODUL
 ###################################################
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.c
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.c
 	@echo [TIARM] Compiling C $$(notdir $$<)
-	$(Q)$$(call PATH_CONV,$(CC) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fc=$$< $(LOGGING)) $($(_MODULE)_MISRA)
+	$(Q)$(CC) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fc=$$< $(LOGGING) $($(_MODULE)_MISRA)
 
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.cpp
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.cpp
 	@echo [TIARM] Compiling C++ $$(notdir $$<)
-	$(Q)$$(call PATH_CONV,$(CP) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fp=$$< $(LOGGING))
+	$(Q)$(CP) $($(_MODULE)_CFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -fs=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fp=$$< $(LOGGING)
 
-$(ODIR)$(PATH_SEP)%.$(OBJ_EXT): $(SDIR)/%.asm
+$(call PATH_CONV,$(ODIR)$(PATH_SEP)%.$(OBJ_EXT)): $(SDIR)/%.asm
 	@echo [TIARM] Assembling $$(notdir $$<)
-	$(Q)$$(call PATH_CONV,$(AS) $($(_MODULE)_AFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fa=$$< $(LOGGING))
+	$(Q)$(AS) $($(_MODULE)_AFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -ft=$$(dir $$@) -eo=.$(OBJ_EXT) -fa=$$< $(LOGGING)
 
 endef
 

@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(HOST_OS),Windows_NT) # cmd.exe
-CLEAN    := cmd.exe /C del /Q
-CLEANDIR := cmd.exe /C rmdir /Q /S
-COPY     := cmd.exe /C copy /Y /Z /V
+ifeq ($(HOST_OS),Windows_NT) # SHELL is cmd.exe
+CLEAN    := del /Q
+CLEANDIR := rmdir /Q /S
+COPY     := copy /Y /Z /V
 PRINT    := @echo
-SET_RW   := cmd.exe /C attrib -R
-SET_EXEC := cmd.exe /C echo
-LINK     := cmd.exe /C junction
-TOUCH    := cmd.exe /C type NUL >
-INSTALL  := cmd.exe /C copy /Y /Z /V
-MKDIR    := cmd.exe /C mkdir
-CAT      := cmd.exe /C type
+SET_RW   := attrib -R
+SET_EXEC := echo
+LINK     := junction
+TOUCH    := type NUL >
+INSTALL  := copy /Y /Z /V
+MKDIR    := mkdir
+CAT      := type
+QUIET 	 := 2>NUL
 else # Bash variants
 CLEAN    := rm -f
 CLEANDIR := rm -rf
@@ -36,5 +37,6 @@ TOUCH    := touch
 INSTALL  := install -C -m 755
 MKDIR    := mkdir -p
 CAT      := cat
+QUIET    := > /dev/null
 endif
 

@@ -30,27 +30,52 @@ HOST_COMPILER   := $(word 6,$(TARGET_COMBO_WORDS))
 else ifeq ($(TARGET_COMBO_COUNT),2)
 TARGET_PLATFORM := $(word 1,$(TARGET_COMBO_WORDS))
 TARGET_BUILD    := $(word 2,$(TARGET_COMBO_WORDS))
+else
+$(error Invalid COMBO syntax!)
 endif
 TARGET_OUT      := $(call MAKE_OUT,$(HOST_ROOT))
 TARGET_DOC      := $(call MAKE_OUT,$(HOST_ROOT))/docs
 
+TCWC := $(words $(subst =,$(SPACE),$(HOST_COMPILER)))
+ifneq ($(TCWC),1)
 TARGET_CROSS_COMPILE := $(word 2,$(subst =, ,$(HOST_COMPILER)))
 $(if $(TARGET_CROSS_COMPILE),$(eval CROSS_COMPILE:=$(TARGET_CROSS_COMPILE)))
+$(info CROSS_COMPILE=$(CROSS_COMPILE))
+HOST_COMPILER := $(firstword $(subst =,$(SPACE),$(HOST_COMPILER)))
+endif
 
+# If the user is building for a remote core, they should set this variable
+ifeq ($(HOST_PLATFORM),$(TARGET_PLATFORM))
+# If the user supplied zero as the number of cores, we try to auto-detect on HOST. 
 ifeq ($(TARGET_OS),Windows_NT)
 $(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=$(NUMBER_OF_PROCESSORS)))
 else
 $(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=$(shell cat /proc/cpuinfo | grep processor | wc -l)))
+endif
+else
+# if they didn't set it to one.
+$(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=1))
 endif
 
 $(eval $(call MACHINE_variables,TARGET))
 
 # name this with a module or dynamically renamed value...
 TARGET_COMBO_NAME := $(subst :,_,$(TARGET_COMBO))
+_NUM_PLATFORM_NAMES := $(words $(subst -, ,$(TARGET_PLATFORM)))
+ifneq ($(_NUM_PLATFORM_NAMES),1)
+_TARGET_PLATFORM := $(call uppercase,$(firstword $(subst -, ,$(TARGET_PLATFORM))))
+else
+_TARGET_PLATFORM := $(call uppercase,$(TARGET_PLATFORM))
+endif
+
 $(TARGET_COMBO_NAME)_DEFS := $(TARGET_OS) \
-	$(TARGET_CPU) $(TARGET_PLATFORM) $(TARGET_FAMILY) \
+	$(TARGET_PLATFORM) \
+	$(TARGET_CPU)="$(TARGET_CPU)" \
 	TARGET_NUM_CORES=$(TARGET_NUM_CORES) TARGET_ARCH=$(TARGET_ARCH) \
 	ARCH_$(TARGET_ARCH)
+ifneq ($(TARGET_FAMILY),$(TARGET_CPU))
+$(TARGET_COMBO_NAME)_DEFS += $(TARGET_FAMILY)
+endif
 
 ifeq ($(TARGET_BUILD),production)
 $(TARGET_COMBO_NAME)_DEFS += TARGET_BUILD=0
@@ -77,6 +102,7 @@ $(TARGET_COMBO_NAME)_LDIRS := $(foreach proj,$(DEP_PROJECTS),$(call MAKE_OUT,$(p
 ifneq ($(NO_BANNER),1)
 $(info HOST_ROOT=$(HOST_ROOT))
 $(info HOST_COMPILER=$(HOST_COMPILER))
+$(info HOST_PLATFORM=$(HOST_PLATFORM))
 $(info HOST_OS=$(HOST_OS))
 $(info HOST_CPU=$(HOST_CPU))
 $(info HOST_ARCH=$(HOST_ARCH))

@@ -39,25 +39,34 @@ TARGET_COMBOS := $(call FILTER_COMBO,$(HOST_PLATFORM))
 endif
 
 # If the platform is set, remove others which are not on that platform.
-ifneq ($(TARGET_PLATFORM),)
-#$(info Want $(TARGET_PLATFORM) in $(TARGET_COMBOS))
+ifneq ($(filter $(origin TARGET_PLATFORM),environment command),)
+$(info Keep only $(TARGET_PLATFORM) platform in TARGET_COMBOS)
 TARGET_COMBOS := $(call FILTER_COMBO,$(TARGET_PLATFORM))
 endif
 
 # If the OS is set, remove others which are not on that OS.
-ifneq ($(TARGET_OS),)
-#$(info Want $(TARGET_OS) in $(TARGET_COMBOS))
+ifneq ($(filter $(origin TARGET_OS),environment command),)
+$(info Keep only $(TARGET_OS) OS in TARGET_COMBOS)
 TARGET_COMBOS := $(call FILTER_COMBO,$(TARGET_OS))
 endif
 
 # If the CPU is set, remove others which are not on that CPU.
-ifneq ($(TARGET_CPU),)
-#$(info Want $(TARGET_CPU) in $(TARGET_COMBOS))
+ifneq ($(filter $(origin TARGET_CPU),environment command),)
+$(info Keep only $(TARGET_CPU) CPU in TARGET_COMBOS)
 TARGET_COMBOS := $(call FILTER_COMBO,$(TARGET_CPU))
+endif
+
+# If the BUILD is set, remove others which are not on that BUILD
+ifneq ($(filter $(origin TARGET_BUILD),environment command),)
+$(info Keep only $(TARGET_BUILD) BUILDS in TARGET_COMBOS)
+TARGET_COMBOS := $(call FILTER_COMBO,$(TARGET_BUILD))
 endif
 
 # The compilers which must have roots set. 
 COMPILER_ROOTS := TIARMCGT_ROOT TMS470_ROOT ARP32CGT_ROOT CGT6X_ROOT CGT7X_ROOT
+ifeq ($(HOST_OS),Windows_NT)
+COMPILER_ROOTS += GCC_ROOT
+endif
 
 # The compiler which do not have roots set.
 REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root)),undefined),$(root)))
@@ -65,7 +74,11 @@ REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root))
 # Remove the list of combos which can not be built
 TARGET_COMBOS := $(call FILTER_OUT_COMBO,$(foreach root,$(REMOVE_ROOTS),$(subst _ROOT,,$(root))))
 
+TARGET_COMBOS := $(strip $(TARGET_COMBOS))
+
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Remaining COMBOS:)
 $(foreach combo,$(TARGET_COMBOS),$(info TARGET_COMBOS+=$(combo)))
 endif
+
+$(if $(strip $(TARGET_COMBOS)),,$(error No TARGET_COMBOS remain! Nothing to make))

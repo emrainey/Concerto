@@ -20,21 +20,38 @@ ifeq ($(TARGET_CPU),X86)
 	CROSS_COMPILE:=
 endif
 
+ifneq ($(HOST_CPU),$(TARGET_CPU))
+$(if $(CROSS_COMPILE),,$(error Cross Compiling is not enabled! TARGET_CPU != HOST_CPU))
+endif
+
+ifeq ($(HOST_OS),Windows_NT)
+$(if $(GCC_ROOT),,$(error GCC_ROOT must be defined!))
+$(if $(filter $(subst ;,$(SPACE),$(PATH)),$(GCC_ROOT)),,$(error GCC_ROOT must be in PATH as well as secondary directories))
+endif
+
 # check for the supported CPU types for this compiler 
 ifeq ($(filter $(TARGET_FAMILY),ARM X86 x86_64),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif 
 
 # check for the support OS types for this compiler
-ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN),)
+ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN NO_OS),)
 $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 
+ifneq ($(GCC_ROOT),)
+CC = $(GCC_ROOT)/bin/$(CROSS_COMPILE)gcc
+CP = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
+AS = $(GCC_ROOT)/bin/$(CROSS_COMPILE)as
+AR = $(GCC_ROOT)/bin/$(CROSS_COMPILE)ar
+LD = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
+else
 CC = $(CROSS_COMPILE)gcc
 CP = $(CROSS_COMPILE)g++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
 LD = $(CROSS_COMPILE)g++
+endif
 
 ifdef LOGFILE
 LOGGING:=&>$(LOGFILE)
@@ -76,8 +93,6 @@ $(_MODULE)_PLATFORM_LIBS := $(PLATFORM_LIBS)
 endif
 $(_MODULE)_DEP_HEADERS := $(foreach inc,$($(_MODULE)_HEADERS),$($(_MODULE)_SDIR)/$(inc).h)
 
-#$(_MODULE)_COPT := $(CFLAGS)
-#$(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
@@ -115,18 +130,12 @@ else ifeq ($(TARGET_CPU),M3)
 $(_MODULE)_COPT += -mcpu=cortex-m3
 else ifeq ($(TARGET_CPU),M4)
 $(_MODULE)_COPT += -mcpu=cortex-m4
-else ifeq ($(TARGET_CPU),A8)
+else ifneq ($(filter $(TARGET_CPU),A8 A8F),)
 $(_MODULE)_COPT += -mcpu=cortex-a8
-else ifeq ($(TARGET_CPU),A9)
+else ifneq ($(filter $(TARGET_CPU),A9 A9F),)
 $(_MODULE)_COPT += -mcpu=cortex-a9
-else ifeq ($(TARGET_CPU),A15)
+else ifneq ($(filter $(TARGET_CPU),A15 A15F),)
 $(_MODULE)_COPT += -mcpu=cortex-a15
-endif
-
-ifeq ($(TARGET_ARCH),32)
-ifeq ($(TARGET_FAMILY),ARM)
-$(_MODULE)_COPT += -m32 -fno-stack-protector
-endif
 endif
 
 $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
@@ -163,8 +172,9 @@ endif
 
 $(_MODULE)_LN_DSO     := $(LINK) $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_BIN)
 $(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($(_MODULE)_VERSION) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT)
-$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
-ifeq ($(TARGET_OS),DARWIN)
+$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) 
+
+ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LINK_DSO   := $(LD) -shared $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
 $(_MODULE)_LINK_EXE   := $(LD) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
 else
@@ -180,6 +190,29 @@ define $(_MODULE)_BUILD
 build:: $($(_MODULE)_BIN)
 endef
 
+ifeq ($(HOST_OS),Windows_NT)
+
+ifeq ($(MAKE_VERSION),3.80)
+$(_MODULE)_GCC_DEPS = -MMD -MF $(ODIR)/$(1).dep -MT '$(ODIR)/$(1).o'
+$(_MODULE)_ASM_DEPS = -MD $(ODIR)/$(1).dep
+endif
+
+define $(_MODULE)_COMPILE_TOOLS
+$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS)
+	@echo [GCC] Compiling C99 $$(notdir $$<)
+	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) $(call $(_MODULE)_GCC_DEPS,$$*) $$< -o $$@ $(LOGGING)
+
+$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS)
+	@echo [GCC] Compiling C++ $$(notdir $$<)
+	$(Q)$(CP) $($(_MODULE)_CFLAGS) $(call $(_MODULE)_GCC_DEPS,$$*) $$< -o $$@ $(LOGGING)
+
+$(ODIR)/%.o: $(SDIR)/%.S
+	@echo [GCC] Assembling $$(notdir $$<)
+	$(Q)$(AS) $($(_MODULE)_AFLAGS) $(call $(_MODULE)_ASM_DEPS,$$*) $$< -o $$@ $(LOGGING)
+endef
+
+else
+
 define $(_MODULE)_COMPILE_TOOLS
 $(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS)
 	@echo [GCC] Compiling C99 $$(notdir $$<)
@@ -193,3 +226,5 @@ $(ODIR)/%.o: $(SDIR)/%.S
 	@echo [GCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef
+
+endif

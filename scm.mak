@@ -32,7 +32,7 @@ ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(SCM_ROOT))
 $(info GIT is used)
 endif
-SCM_VERSION := $(shell git describe --tags --dirty)
+SCM_VERSION := $(shell git describe --tags --dirty --always)
 # The following is in case git is not executable in the shell where the build is taking place (eg. DOS)
 ifeq ($(SCM_VERSION),)
 TEMP := $(lastword $(shell $(CAT) $(call PATH_CONV,"$(SCM_ROOT)/HEAD")))

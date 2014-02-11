@@ -33,8 +33,7 @@ else ifeq ($($(1)_CPU),x86_64)
     $(1)_FAMILY=x86_64
     $(1)_ARCH=64
     $(1)_ENDIAN=LITTLE
-else ifneq ($(filter $($(1)_CPU),ARM M3 M4 A8 A9 A15 armv7l),)
-    HOST_PLATFORM=PANDA
+else ifneq ($(filter $($(1)_CPU),ARM M3 M4 A8 A8F A9 A9F A15 A15F armv7l),)
     $(1)_FAMILY=ARM
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE

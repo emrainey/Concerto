@@ -110,6 +110,8 @@ else ifeq ($(HOST_COMPILER),TMS470)
 	include $(CONCERTO_ROOT)/compilers/tms470.mak
 else ifeq ($(HOST_COMPILER),TIARMCGT)
 	include $(CONCERTO_ROOT)/compilers/tiarmcgt.mak
+else
+$(error Undefined compiler $(HOST_COMPILER))	
 endif
 endif
 

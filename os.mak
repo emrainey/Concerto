@@ -58,3 +58,13 @@ else
     PATH_SEPD=/
     HOST_COMPILER?=GCC
 endif
+
+ifeq ($(HOST_OS),Windows_NT)
+$(info ComSpec=$(ComSpec))
+    SHELL:=$(ComSpec)
+    .SHELLFLAGS=/C
+else
+    SHELL:=/bin/sh
+endif
+
+$(info SHELL=$(SHELL))

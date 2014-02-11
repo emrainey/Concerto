@@ -14,67 +14,22 @@
 
 # Take the Makefile list and remove prelude and finale includes
 # @note MAKEFILE_LIST is an automatic variable!
-ifeq ($(HOST_OS),Windows_NT)
-ALL_MAKEFILES := $(filter %\$(SUBMAKEFILE),$(MAKEFILE_LIST))
-else
-ALL_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(MAKEFILE_LIST))
-endif
-#$(info ALL_MAKEFILES=$(ALL_MAKEFILES))
 
-# Take the resulting list and remove the pathing and Makefile each entry and
-# then you have the modules list.
-
-# get this makefile
-THIS_MAKEFILE := $(lastword $(ALL_MAKEFILES))
-#$(info THIS_MAKEFILE=$(THIS_MAKEFILE))
-#$(info HOST_ROOT=$(HOST_ROOT))
-
-# Remove the $(SUBMAKEFILE) to get the path
-ifeq ($(HOST_OS),Windows_NT)
-# This is a bear on Windows!
-_MAKEPATH := $(dir $(THIS_MAKEFILE))
-#$(info PATH=$(_MAKEPATH))
-_FULLPATH := $(lastword $(subst :,$(SPACE),$(_MAKEPATH)))
-#$(info FULL=$(_FULLPATH))
-_BASEPATH := $(lastword $(subst :,$(SPACE),$(subst /,\,$(HOST_ROOT))))
-#$(info BASE=$(_BASEPATH))
-_MODPATH  := $(subst $(_BASEPATH),,$(_FULLPATH))
-#$(info PATH=$(_MODPATH))
-# now in the form of \...\...\ remove the outer \'s
-_PARTS   := $(strip $(subst \,$(SPACE),$(_MODPATH)))
-#$(info PARTS=$(_PARTS))
-_MODPATH := $(subst $(SPACE),\,$(_PARTS))
-#$(info STRIPPED PATH=$(_MODPATH))
-else
+# Get all the Concerto files (can't use TARGET_MAKEFILES since we don't know the ordering)
+CONCERTO_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(MAKEFILE_LIST))
+THIS_MAKEFILE := $(lastword $(CONCERTO_MAKEFILES))
 _MODPATH := $(subst /$(SUBMAKEFILE),,$(THIS_MAKEFILE))
-endif
-
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(info _MODPATH=$(_MODPATH))
-endif
-
-ifeq ($(_MODPATH),)
-$(error $(THIS_MAKEFILE) failed to get module path)
-endif
-
-ifeq ($(HOST_OS),Windows_NT)
-_MODDIR := $(subst \,.,$(_MODPATH))
-else
 _MODDIR := $(subst /,.,$(_MODPATH))
-endif
 
-# If we're calling this from our directory we need to figure out the path
-ifeq ($(_MODDIR),./)
-ifeq ($(HOST_OS),Windows_NT)
-_MODDIR := $(lastword $(subst \,$(SPACE),$(abspath .)))
-else
-_MODDIR := $(lastword $(subst /,$(SPACE),$(abspath .)))
-endif
-endif
+$(if $(SHOW_MAKEDEBUG),$(info HOST_ROOT=$(HOST_ROOT)))
+$(if $(SHOW_MAKEDEBUG),$(info MAKEFILE_LIST (so far) = $(MAKEFILE_LIST)))
+$(if $(SHOW_MAKEDEBUG),$(info CONCERTO_MAKEFILES=$(CONCERTO_MAKEFILES)))
+$(if $(SHOW_MAKEDEBUG),$(info THIS_MAKEFILE=$(THIS_MAKEFILE)))
+$(if $(SHOW_MAKEDEBUG),$(info _MODPATH=$(_MODPATH)))
+$(if $(SHOW_MAKEDEBUG),$(info _MODDIR=$(_MODDIR)))
 
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(info _MODDIR=$(_MODDIR))
-endif
+# Error if empty
+$(if $(_MODPATH),,$(error $(THIS_MAKEFILE) failed to get module path))
 
 # if the makefile didn't define the module name, use the directory name
 ifeq ($(BUILD_MULTI_PROJECT),1)
@@ -83,15 +38,15 @@ _MODULE:=$(_MODDIR)+$(_MODULE)
 else
 _MODULE:=$(_MODDIR)
 endif
-else ifeq ($(_MODULE),)
+else ifeq ($(_MODULE),) # not multiproject and _MODULE was not set
 _MODULE:=$(_MODDIR)
 endif
+$(if $(SHOW_MAKEDEBUG),$(info _MODULE=$(_MODULE)))
 
-# if there's no module name, this isn't going to work!
-ifeq ($(_MODULE),)
-$(error Failed to create module name!)
-endif
+# if there's no module name, fail
+$(if $(_MODULE),,$(error Failed to create module name!))
 
+# Save the short name of the module
 _MODULE_NAME := $(_MODULE)
 
 ifneq ($(TARGET_COMBOS),)
@@ -100,9 +55,7 @@ _MODULE := $(_MODULE).$(TARGET_PLATFORM).$(TARGET_OS).$(TARGET_CPU).$(TARGET_BUI
 endif
 
 # Print some info to show that we're processing the makefiles
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(info Adding Module $(_MODULE) to MODULES)
-endif
+$(if $(SHOW_MAKEDEBUG),$(info Adding Module $(_MODULE) to MODULES))
 
 # IF there is a conflicting _MODULE, error
 $(if $(filter $(_MODULE),$(MODULES)),$(error MODULE $(_MODULE) already defined in $(MODULES)!))
@@ -141,15 +94,9 @@ endif
 # Define a ".gitignore" file which will help in making sure the module's output
 # folder always exists.
 %.gitignore:
-ifeq ($(SHOW_MAKEDEBUG),1)
-	$(PRINT) Creating Folder $(dir $@)
-endif
-	-$(Q)$(MKDIR) $(call PATH_CONV,$(dir $@))
-ifeq ($(SHOW_MAKEDEBUG),1)
-	$(PRINT) Touching $@
-endif
+	-$(Q)$(MKDIR) $(call PATH_CONV,$(dir $@)) $(QUIET)
 	-$(Q)$(TOUCH) $(call PATH_CONV,$@)
-
+	
 dir:: $($(_MODULE)_ODIR)/.gitignore
 
 # Clean out the concerto.mak variables
@@ -167,7 +114,7 @@ $(info _MODULE_VARS=$(_MODULE_VARS))
 endif
 
 # Clear out all the variables
-ifeq ($(MAKE_VERSION),3.82)
+ifneq ($(filter $(MAKE_VERSION),3.82 4.0),)
 $(foreach mvar,$(_MODULE_VARS),$(eval undefine $(mvar)))
 else
 $(foreach mvar,$(_MODULE_VARS),$(eval $(mvar):=$(EMPTY)))
@@ -179,7 +126,7 @@ $(foreach mod,$(filter MODULE_%,$(.VARIABLES)),$(eval $(mod):=$(EMPTY)))
 # Define convenience variables
 SDIR := $($(_MODULE)_SDIR)
 TDIR := $($(_MODULE)_TDIR)
-ODIR := $(call PATH_CONV,$($(_MODULE)_ODIR))
+ODIR := $($(_MODULE)_ODIR)
 
 # Pull in the definitions which will be redefined for this makefile
 include $(CONCERTO_ROOT)/definitions.mak
