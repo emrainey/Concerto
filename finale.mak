@@ -84,13 +84,15 @@ else ifeq ($($(_MODULE)_TYPE),exe)
 else ifeq ($($(_MODULE)_TYPE),jar)
 	include $(CONCERTO_ROOT)/compilers/java.mak
 else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
-    include $(CONCERTO_ROOT)/compilers/opencl.mak
+	include $(CONCERTO_ROOT)/compilers/opencl.mak
 else ifeq ($($(_MODULE)_TYPE),deb)
-    include $(CONCERTO_ROOT)/tools/dpkg.mak
+	include $(CONCERTO_ROOT)/tools/dpkg.mak
 else ifeq ($($(_MODULE)_TYPE),tar)
-    include $(CONCERTO_ROOT)/tools/tar.mak 
+	include $(CONCERTO_ROOT)/tools/tar.mak 
 else ifeq ($($(_MODULE)_TYPE),doxygen)
-    include $(CONCERTO_ROOT)/tools/doxygen.mak
+	include $(CONCERTO_ROOT)/tools/doxygen.mak
+else ifeq ($($(_MODULE)_TYPE),latex)
+	include $(CONCERTO_ROOT)/tools/latex.mak
 # \todo add new build types here!    
 endif
 
@@ -232,6 +234,13 @@ $(eval $(call $(_MODULE)_PACKAGE))
 else ifeq ($($(_MODULE)_TYPE),doxygen)
 
 $(eval $(call $(_MODULE)_DOCUMENTS))
+
+else ifeq ($($(_MODULE)_TYPE),latex)
+
+$(foreach tex,$(TEX_OBJS),$(eval $(call $(_MODULE)_LATEX,$(basename $(notdir $(tex))))))
+$(foreach dot,$(DOT_OBJS),$(eval $(call $(_MODULE)_DOTS,$(basename $(notdir $(dot))))))
+$(foreach msc,$(MSC_OBJS),$(eval $(call $(_MODULE)_MSCS,$(basename $(notdir $(msc))))))
+$(foreach sup,$(SUPPORT),$(eval $(call $(_MODULE)_SUPPORT,$(sup))))
 
 endif
 

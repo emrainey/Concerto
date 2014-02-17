@@ -20,8 +20,8 @@ ifeq ($(TARGET_CPU),X86)
 	CROSS_COMPILE:=
 endif
 
-ifneq ($(HOST_CPU),$(TARGET_CPU))
-$(if $(CROSS_COMPILE),,$(error Cross Compiling is not enabled! TARGET_CPU != HOST_CPU))
+ifneq ($(HOST_FAMILY),$(TARGET_FAMILY))
+$(if $(CROSS_COMPILE),,$(error Cross Compiling is not enabled! TARGET_FAMILY != HOST_FAMILY))
 endif
 
 ifeq ($(HOST_OS),Windows_NT)
