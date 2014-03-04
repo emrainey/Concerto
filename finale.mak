@@ -237,10 +237,7 @@ $(eval $(call $(_MODULE)_DOCUMENTS))
 
 else ifeq ($($(_MODULE)_TYPE),latex)
 
-$(foreach tex,$(TEX_OBJS),$(eval $(call $(_MODULE)_LATEX,$(basename $(notdir $(tex))))))
-$(foreach dot,$(DOT_OBJS),$(eval $(call $(_MODULE)_DOTS,$(basename $(notdir $(dot))))))
-$(foreach msc,$(MSC_OBJS),$(eval $(call $(_MODULE)_MSCS,$(basename $(notdir $(msc))))))
-$(foreach sup,$(SUPPORT),$(eval $(call $(_MODULE)_SUPPORT,$(sup))))
+# $($(_MODULE)_COMPILE_TOOLS) will pickup the rules
 
 endif
 

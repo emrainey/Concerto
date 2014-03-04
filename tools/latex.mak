@@ -18,58 +18,81 @@ PDFLATEX := pdflatex
 MSCGEN := mscgen
 DOT := dot
 EPSTOPDF := epstopdf
+BIBTEX := bibtex
 
 PDFNAME ?= $(TARGET).pdf
 
+BIB_OBJS := $(BIBFILES:%.bib=$(ODIR)/%.bib)
 DOT_OBJS := $(DOTFILES:%.dot=$(ODIR)/%.pdf)
 MSC_OBJS := $(MSCFILES:%.msc=$(ODIR)/%.pdf)
 TEX_OBJS := $(TEXFILES:%.tex=$(ODIR)/%.pdf)
+STY_OBJS := $(STYFILES:%.sty=$(ODIR)/%.sty)
+BST_OBJS := $(BSTFILES:%.bst=$(ODIR)/%.bst)
 
-SUPPORT := $(BIBFILES) $(BSTFILES) $(STYFILES)
-SUPPORT_SRCS := $(foreach sup,$(SUPPORT),$(SDIR)/$(sup))
-SUPPORT_OBJS := $(foreach sup,$(SUPPORT),$(ODIR)/$(sup))
+$(_MODULE)_SUPPORT := $(BIBFILES) $(BSTFILES) $(STYFILES)
+$(_MODULE)_SUPPORT_SRCS := $(foreach sup,$(SUPPORT),$(SDIR)/$(sup))
+$(_MODULE)_SUPPORT_OBJS := $(foreach sup,$(SUPPORT),$(ODIR)/$(sup))
+
+$(_MODULE)_BIN := $(TDIR)/$(PDFNAME)
+$(_MODULE)_SRCS := $(DOTFILES) $(MSCFILES) $(TEXFILES) $(BIBFILES) $(BSTFILES) $(STYFILES)
+$(_MODULE)_OBJS := $(DOT_OBJS) $(MSC_OBJS) $(BIB_OBJS) $(TEX_OBJS) $(STY_OBJS) $(BST_OBJS)
+# in case the name gets duplicated 
+$(_MODULE)_OBJS := $(filter-out $(ODIR)/$(PDFNAME),$($(_MODULE)_OBJS))
 
 ifeq ($(SHOW_COMMANDS),1)
 DFLAGS := --halt-on-error
 endif
 
-$(info Support LATEX Objects $(SUPPORT_OBJS))
+ifeq ($(SHOW_MAKEDEBUG),1)
+$(info Latex SUPPORT_OBJS=$(SUPPORT_OBJS))
+endif
 
-$(_MODULE)_BIN := $(TDIR)/$(PDFNAME)
-$(_MODULE)_SRCS := $(DOTFILES) $(MSCFILES) $(TEXFILES) $(BIBFILES) $(BSTFILES) $(STYFILES)
-#$(_MODULE)_OBJS := $(DOT_OBJS) $(MSC_OBJS) $(TEX_OBJS)
+define $(_MODULE)_COMPILE_TOOLS
 
-$(info LATEX $(_MODULE)_BIN =  $($(_MODULE)_BIN))
-
-define $(_MODULE)_DOTS
-$(ODIR)/$(1).pdf: $(SDIR)/$(1).dot $(ODIR)/.gitignore
-	@echo [DOT] $$(notdir $$<)
-	$(Q)$(DOT) -Tpdf -o $$@ $$<
-endef
-
-define $(_MODULE)_MSCS
-$(ODIR)/$(1).pdf: $(SDIR)/$(1).msc $(ODIR)/.gitignore
-	@echo [MSC] $$(notdir $$<)
-	$(Q)$(MSCGEN) -T eps -i $$< -o $$(basename $$@).eps
-	$(Q)$(EPSTOPDF) $$(basename $$@).eps --outfile=$$@
-endef
-
-define $(_MODULE)_SUPPORT
-$(ODIR)/$(1): $(SDIR)/$(1)
-	$(Q)$(COPY) $$< $$@
-endef
-
-define $(_MODULE)_LATEX
-
-build:: $($(_MODULE)_BIN)
-
-$($(_MODULE)_BIN): $(TEX_OBJS)
+$($(_MODULE)_BIN): $(ODIR)/$(PDFNAME) $(TDIR)/.gitignore
 	@echo [COPY] $$(notdir $$<)
 	$(Q)$(COPY) $$< $$@
 
-$(ODIR)/$(1).pdf: $(SDIR)/$(1).tex $(DOT_OBJS) $(MSC_OBJS) $(SUPPORT_OBJS) $(ODIR)/.gitignore
+$(ODIR)/%.pdf: $(SDIR)/%.dot $(ODIR)/.gitignore
+	@echo [DOT] $$(notdir $$<)
+	$(Q)$(DOT) -T pdf -o $$@ $$<
+
+$(ODIR)/%.eps: $(SDIR)/%.msc $(ODIR)/.gitignore
+	@echo [MSC] $$(notdir $$<)
+	$(Q)$(MSCGEN) -T eps -i $$< -o $$(basename $$@).eps
+
+$(ODIR)/%.pdf: $(ODIR)/%.eps $(ODIR)/.gitignore
+	@echo [PDF] Convert $$(notdir $$<)
+	$(Q)$(EPSTOPDF) $$< --outfile=$$@
+
+$(ODIR)/%.tex: $(SDIR)/%.tex $(ODIR)/.gitignore
+	@echo [COPY] $$(notdir $$<)
+	$(Q)$(COPY) $$< $$@
+
+$(ODIR)/%.sty: $(SDIR)/%.sty $(ODIR)/.gitignore
+	@echo [COPY] $$(notdir $$<)
+	$(Q)$(COPY) $$< $$@
+
+$(ODIR)/%.bst: $(SDIR)/%.bst $(ODIR)/.gitignore
+	@echo [COPY] $$(notdir $$<)
+	$(Q)$(COPY) $$< $$@
+
+$(ODIR)/%.bib: $(SDIR)/%.bib $(ODIR)/.gitignore $(ODIR)/.gitignore
+	@echo [COPY] $$(notdir $$<)
+	$(Q)$(COPY) $$< $$@
+
+$(ODIR)/%.pdf: $(ODIR)/%.tex $($(_MODULE)_OBJS) $(ODIR)/.gitignore
 	@echo [TEX] $$(notdir $$<)
 	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
+	@echo [BIB] Fixing bibliography
+	$(Q)cd $(ODIR);$(BIBTEX) $$(basename $$(notdir $$<))
+	@echo [TEX] $$(notdir $$<) Post-bib-fixup
+	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
+	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
 
+latex:: $($(_MODULE)_BIN)
+
+clean_latex::
+	$(Q)rm $($(_MODULE)_OBJS) $($(_MODULE)_BIN)
+ 
 endef
-
