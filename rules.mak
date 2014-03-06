@@ -73,7 +73,7 @@ include $(CONCERTO_ROOT)/scm.mak
 TARGET_COMBOS ?= PC:$(HOST_OS):$(HOST_CPU):0:$(TARGET_BUILD):$(HOST_COMPILER)
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
-TARGET_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(sort $(foreach d,$(DIRECTORIES),$(strip $(call rwildcard,$(d),*.mak)))))
+TARGET_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(sort $(foreach d,$(DIRECTORIES),$(strip $(call rwildcard,$(d)/,*.mak)))))
 
 # These variables will be appended by each new submakefile included in the combo
 MODULES:=
