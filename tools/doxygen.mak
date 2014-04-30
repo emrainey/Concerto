@@ -24,7 +24,7 @@ $(_MODULE)_BIN := $($(_MODULE)_TDIR)/$($(_MODULE)_TARGET).tar.gz
 $(_MODULE)_HTML := $(TARGET_DOC)/$(_MODULE)/html/index.html
 $(_MODULE)_TEX  := $(TARGET_DOC)/$(_MODULE)/latex/refman.tex
 $(_MODULE)_PDFNAME := $(PDFNAME)
-$(_MODULE)_PDF := $(TARGET_DOC)/$(_MODULE)/latex/$($(_MODULE)_PDFNAME)
+$(_MODULE)_PDF := $(TDIR)/$($(_MODULE)_PDFNAME)
 
 #$(info Modified Doxyfile should be in $($(_MODULE)_DOXYFILE_MOD))
 
@@ -57,11 +57,10 @@ $($(_MODULE)_PDF): $($(_MODULE)_TEX)
 	 bibtex refman; \
 	 makeindex refman.idx; \
 	 pdflatex refman; 
-	-cd $(TARGET_DOC)/$(_MODULE)/latex/; \
-	 cp refman.pdf $($(_MODULE)_PDFNAME)
+	-$(Q)cd $(TARGET_DOC)/$(_MODULE)/latex; cp refman.pdf $($(_MODULE)_PDFNAME); cp refman.pdf $($(_MODULE)_PDF)
 
 $(_MODULE)_docs:: $($(_MODULE)_HTML) $($(_MODULE)_PDF) $($(_MODULE)_ODIR)/.gitignore
-	$(Q)tar zcvf $($(_MODULE)_BIN) $(TARGET_DOC)/$(_MODULE)/html $($(_MODULE)_PDF)
+	$(Q)tar zcf $($(_MODULE)_BIN) $(TARGET_DOC)/$(_MODULE)/html
 
 $($(_MODULE)_BIN):: $(_MODULE)_docs
 

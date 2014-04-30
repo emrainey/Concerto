@@ -21,6 +21,7 @@ endif
 
 -include $(CONCERTO_ROOT)/components/glut.mak
 -include $(CONCERTO_ROOT)/components/opencl.mak
+-include $(CONCERTO_ROOT)/components/openmp.mak
 
 # Users may use the new syntax of all variables starting with "MODULE_" but may not quite
 # yet so don't erase the value if it's set.
@@ -58,8 +59,9 @@ $(_MODULE)_HEADERS := $(HEADERS)
 $(_MODULE)_TYPE := $(strip $(TARGETTYPE))
 $(_MODULE)_TDEFS := $(TARGET_DEFS)
 $(_MODULE)_DEFS := $(SYSDEFS) $(DEFS) $($(TARGET_COMBO_NAME)_DEFS)
-$(_MODULE)_TEST := $(TESTCASE)
+$(_MODULE)_TESTPRGM := $(TESTPRGM)
 $(_MODULE)_TESTOPTS := $(TESTOPTS)
+$(_MODULE)_TESTPATH := $(TESTPATH)
 $(_MODULE)_VERSION := $(VERSION)
 
 # Set the Install Path
@@ -86,11 +88,11 @@ else ifeq ($($(_MODULE)_TYPE),jar)
 else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
 	include $(CONCERTO_ROOT)/compilers/opencl.mak
 else ifeq ($($(_MODULE)_TYPE),deb)
-	include $(CONCERTO_ROOT)/tools/dpkg.mak
+    include $(CONCERTO_ROOT)/tools/dpkg.mak
 else ifeq ($($(_MODULE)_TYPE),tar)
-	include $(CONCERTO_ROOT)/tools/tar.mak 
+    include $(CONCERTO_ROOT)/tools/tar.mak 
 else ifeq ($($(_MODULE)_TYPE),doxygen)
-	include $(CONCERTO_ROOT)/tools/doxygen.mak
+    include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
 # \todo add new build types here!    
@@ -104,6 +106,8 @@ else ifeq ($(HOST_COMPILER),CLANG)
 	include $(CONCERTO_ROOT)/compilers/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
 	include $(CONCERTO_ROOT)/compilers/cl.mak
+else ifeq ($(HOST_COMPILER),RVCT)
+	include $(CONCERTO_ROOT)/compilers/rvct.mak
 else ifeq ($(HOST_COMPILER),CGT6X)
 	include $(CONCERTO_ROOT)/compilers/cgt6x.mak
 else ifeq ($(HOST_COMPILER),QCC)
@@ -152,11 +156,22 @@ $(TARGET):: $(_MODULE)
 .PHONY: $(_MODULE)
 $(_MODULE):: $($(_MODULE)_BIN)
 
-ifneq ($($(_MODULE)_TEST),)
+ifneq ($($(_MODULE)_TESTPRGM),)
 TESTABLE_MODULES += $(_MODULE)
 .PHONY: $(_MODULE)_test
-$(_MODULE)_test: $($(_MODULE)_TDIR)/$($(_MODULE)_TEST) install
-	$(Q)$($(_MODULE)_TESTOPTS)
+
+define $(_MODULE)_TESTCASE
+$(_MODULE)_test: $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM)
+	$(PRINT) Running $($(_MODULE)_TESTPRGM)
+ifeq ($(HOST_OS),Windows_NT)
+	$(Q)cd $($(_MODULE)_TESTPATH) && PATH=$(PATH)\;$($(_MODULE)_TDIR) $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM) $($(_MODULE)_TESTOPTS)
+else
+	$(Q)cd $($(_MODULE)_TESTPATH) && LD_LIBRARY_PATH=$($(_MODULE)_TDIR) $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM) $($(_MODULE)_TESTOPTS)
+endif
+
+endef
+
+$(eval $(call $(_MODULE)_TESTCASE))
 endif
 
 ifeq ($($(_MODULE)_TYPE),library)
@@ -298,7 +313,9 @@ $(_MODULE)_vars::
 	$(PRINT) $(_MODULE)_SYS_STATIC_LIBS=$($(_MODULE)_SYS_STATIC_LIBS)
 	$(PRINT) $(_MODULE)_SYS_SHARED_LIBS=$($(_MODULE)_SYS_SHARED_LIBS)
 	$(PRINT) $(_MODULE)_CLASSES=$($(_MODULES)_CLASSES)
-	$(PRINT) $(_MODULE)_TEST=$($(_MODULE)_TEST)
+	$(PRINT) $(_MODULE)_TESTPRGM=$($(_MODULE)_TESTPRGM)
+	$(PRINT) $(_MODULE)_TESTOPTS=$($(_MODULE)_TESTOPTS)
+	$(PRINT) $(_MODULE)_TESTPATH=$($(_MODULE)_TESTPATH)
 	$(PRINT) $(_MODULE)_DEFS=$($(_MODULE)_DEFS)
 	$(PRINT) =============================================
 endef

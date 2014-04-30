@@ -33,7 +33,7 @@ else
         HOST_NUM_CORES := $(shell cat /proc/cpuinfo | grep processor | wc -l)
     else ifeq ($(OS),Darwin)
         HOST_OS=DARWIN
-        HOST_NUM_CORES := $(shell sysctl hw.ncpu | awk '{print $2}')
+        HOST_NUM_CORES := $(word 2,$(shell sysctl hw.ncpu))
     else ifeq ($(OS),CYGWIN_NT-5.1)
         HOST_OS=CYGWIN
         P2W_CONV=$(patsubst \cygdrive\c\%,c:\%,$(subst /,\,$(1)))

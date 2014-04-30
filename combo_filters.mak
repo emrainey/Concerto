@@ -63,10 +63,12 @@ TARGET_COMBOS := $(call FILTER_COMBO,$(TARGET_BUILD))
 endif
 
 # The compilers which must have roots set. 
-COMPILER_ROOTS := TIARMCGT_ROOT TMS470_ROOT ARP32CGT_ROOT CGT6X_ROOT CGT7X_ROOT
+COMPILER_ROOTS := TIARMCGT_ROOT TMS470_ROOT CGT6X_ROOT
 ifeq ($(HOST_OS),Windows_NT)
 COMPILER_ROOTS += GCC_ROOT
 endif
+
+$(foreach root,$(COMPILER_ROOTS),$(info $(origin $(root)) $(root)=$(value $(root))))
 
 # The compiler which do not have roots set.
 REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root)),undefined),$(root)))

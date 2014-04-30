@@ -22,12 +22,13 @@ BIBTEX := bibtex
 
 PDFNAME ?= $(TARGET).pdf
 
-BIB_OBJS := $(BIBFILES:%.bib=$(ODIR)/%.bib)
+BIB_OBJS := $(addprefix $(ODIR)/,$(BIBFILES))
 DOT_OBJS := $(DOTFILES:%.dot=$(ODIR)/%.pdf)
 MSC_OBJS := $(MSCFILES:%.msc=$(ODIR)/%.pdf)
 TEX_OBJS := $(TEXFILES:%.tex=$(ODIR)/%.pdf)
-STY_OBJS := $(STYFILES:%.sty=$(ODIR)/%.sty)
-BST_OBJS := $(BSTFILES:%.bst=$(ODIR)/%.bst)
+STY_OBJS := $(addprefix $(ODIR)/,$(STYFILES))
+BST_OBJS := $(addprefix $(ODIR)/,$(BSTFILES))
+IMG_OBJS := $(addprefix $(ODIR)/,$(IMGFILES))
 
 $(_MODULE)_SUPPORT := $(BIBFILES) $(BSTFILES) $(STYFILES)
 $(_MODULE)_SUPPORT_SRCS := $(foreach sup,$(SUPPORT),$(SDIR)/$(sup))
@@ -35,7 +36,7 @@ $(_MODULE)_SUPPORT_OBJS := $(foreach sup,$(SUPPORT),$(ODIR)/$(sup))
 
 $(_MODULE)_BIN := $(TDIR)/$(PDFNAME)
 $(_MODULE)_SRCS := $(DOTFILES) $(MSCFILES) $(TEXFILES) $(BIBFILES) $(BSTFILES) $(STYFILES)
-$(_MODULE)_OBJS := $(DOT_OBJS) $(MSC_OBJS) $(BIB_OBJS) $(TEX_OBJS) $(STY_OBJS) $(BST_OBJS)
+$(_MODULE)_OBJS := $(DOT_OBJS) $(MSC_OBJS) $(BIB_OBJS) $(TEX_OBJS) $(STY_OBJS) $(BST_OBJS) $(IMG_OBJS)
 # in case the name gets duplicated 
 $(_MODULE)_OBJS := $(filter-out $(ODIR)/$(PDFNAME),$($(_MODULE)_OBJS))
 
@@ -53,9 +54,19 @@ $($(_MODULE)_BIN): $(ODIR)/$(PDFNAME) $(TDIR)/.gitignore
 	@echo [COPY] $$(notdir $$<)
 	$(Q)$(COPY) $$< $$@
 
+$(ODIR)/%.png: $(SDIR)/%.png $(ODIR)/.gitignore
+	@echo [COPY] $$(notdir $$<)
+	$(Q)$(COPY) $$< $$@	
+
 $(ODIR)/%.pdf: $(SDIR)/%.dot $(ODIR)/.gitignore
 	@echo [DOT] $$(notdir $$<)
+ifeq ($(USE_SVG),true)	
+	$(Q)$(DOT) -T svg -o $(ODIR)/$$(notdir $$(basename $$<)).svg $$<
+	$(Q)xsltproc -o $(ODIR)/$$(notdir $$(basename $$<))_new.svg $(CONCERTO_ROOT)/tools/notuglydot.xsl $(ODIR)/$$(notdir $$(basename $$<)).svg 
+	$(Q)inkscape -z -D --file $(ODIR)/$$(notdir $$(basename $$<))_new.svg --export-pdf=$$@
+else	
 	$(Q)$(DOT) -T pdf -o $$@ $$<
+endif
 
 $(ODIR)/%.eps: $(SDIR)/%.msc $(ODIR)/.gitignore
 	@echo [MSC] $$(notdir $$<)
@@ -83,12 +94,15 @@ $(ODIR)/%.bib: $(SDIR)/%.bib $(ODIR)/.gitignore $(ODIR)/.gitignore
 
 $(ODIR)/%.pdf: $(ODIR)/%.tex $($(_MODULE)_OBJS) $(ODIR)/.gitignore
 	@echo [TEX] $$(notdir $$<)
-	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
+	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -shell-escape -output-format=pdf --output-directory=$(ODIR) $$<
 	@echo [BIB] Fixing bibliography
 	$(Q)cd $(ODIR);$(BIBTEX) $$(basename $$(notdir $$<))
 	@echo [TEX] $$(notdir $$<) Post-bib-fixup
-	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
-	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -output-format=pdf --output-directory=$(ODIR) $$<
+	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -shell-escape -output-format=pdf --output-directory=$(ODIR) $$<
+	$(Q)cd $(ODIR);$(PDFLATEX) $(DFLAGS) -shell-escape -output-format=pdf --output-directory=$(ODIR) $$<
+
+$(ODIR)/$(PDFNAME): $(TEX_OBJS)
+	$(Q)$(COPY) $$< $$@
 
 latex:: $($(_MODULE)_BIN)
 
