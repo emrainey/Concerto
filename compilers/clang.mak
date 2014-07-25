@@ -153,25 +153,25 @@ define $(_MODULE)_ANALYZER
 
 analysis::$(CPPSOURCES:%.cpp=$(ODIR)/%.xml) $(CSOURCES:%.c=$(ODIR)/%.xml)
 
-$(ODIR)/%.xml: $(SDIR)/%.c $(ODIR)/.gitignore
+$(ODIR)/%.xml: $(SDIR)/%.c $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Analyzing C $$(notdir $$<)
 	$(Q)$(CC) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 	
-$(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore
+$(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Analyzing C++ $$(notdir $$<)
 	$(Q)$(CP) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 endef
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S
+$(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef

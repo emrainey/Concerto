@@ -16,8 +16,10 @@ ifeq ($(USE_OPENMP),true)
 	ifeq ($(HOST_OS),LINUX)
 		CFLAGS += -fopenmp
 		SYS_SHARED_LIBS += gomp
+		DEFS += USE_OPENMP
 	else ifeq ($(HOST_OS),DARWIN)
 		# User should have XCode install OpenMP
 		$(_MODULE)_FRAMEWORKS += -framework OpenMP
+		DEFS += USE_OPENMP
 	endif
 endif

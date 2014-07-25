@@ -21,8 +21,8 @@ endif
 
 ifeq ($(HOST_PLATFORM),PC)
 ifneq ($(HOST_CPU),ARM)
-# PANDA ARM is self-hosting
-TARGET_COMBOS := $(call FILTER_OUT_COMBO,PANDA)
+# DEVBOARD ARM is self-hosting
+TARGET_COMBOS := $(call FILTER_OUT_COMBO,DEVBOARD)
 endif
 ifeq ($(HOST_FAMILY),X86)
 TARGET_COMBOS := $(call FILTER_OUT_COMBO,x86_64)
@@ -34,7 +34,7 @@ TARGET_COMBOS := $(call FILTER_COMBO,$(HOST_OS))
 else ifeq ($(HOST_OS),Windows_NT)
 TARGET_COMBOS := $(call FILTER_COMBO,$(HOST_OS) SYSBIOS NO_OS)
 endif
-else ifeq ($(HOST_PLATFORM),PANDA)
+else ifeq ($(HOST_PLATFORM),DEVBOARD)
 TARGET_COMBOS := $(call FILTER_COMBO,$(HOST_PLATFORM))
 endif
 

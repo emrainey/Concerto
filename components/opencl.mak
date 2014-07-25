@@ -23,6 +23,7 @@ ifeq ($(USE_OPENCL),true)
 		ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
 		    PLATFORM_LIBS += $(OCL_LIB)
 		endif
+		DEFS += USE_OPENCL
 	else ifeq ($(HOST_OS),LINUX)
 		# User should install GLUT/Mesa via package system
 		IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
@@ -30,9 +31,11 @@ ifeq ($(USE_OPENCL),true)
 		ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
 			PLATFORM_LIBS += $(OCL_LIB)
 		endif
+		DEFS += USE_OPENCL
 	else ifeq ($(HOST_OS),DARWIN)
 		# User should have XCode install OpenCL
 		$(_MODULE)_FRAMEWORKS += -framework OpenCL
+		DEFS += USE_OPENCL
 	endif
 	
     # OpenCL-Environment Defines

@@ -118,7 +118,7 @@ endif
 endif
 
 ifeq ($(TARGET_FAMILY),ARM)
-$(_MODULE)_COPT += -mapcs -mno-sched-prolog -mno-thumb-interwork
+$(_MODULE)_COPT += -mapcs -mno-sched-prolog -mno-thumb-interwork -marm
 ifeq ($(TARGET_OS),LINUX)
 $(_MODULE)_COPT += -mabi=aapcs-linux
 endif
@@ -198,15 +198,15 @@ $(_MODULE)_ASM_DEPS = -MD $(ODIR)/$(1).dep
 endif
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) $(call $(_MODULE)_GCC_DEPS,$$*) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) $(call $(_MODULE)_GCC_DEPS,$$*) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S
+$(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $(call $(_MODULE)_ASM_DEPS,$$*) $$< -o $$@ $(LOGGING)
 endef
@@ -214,15 +214,15 @@ endef
 else
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS)
+$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S
+$(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef

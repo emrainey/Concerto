@@ -19,6 +19,7 @@ else ifeq ($(VERSION),)
 VERSION := 1.0
 endif
 
+-include $(CONCERTO_ROOT)/components/sdl.mak
 -include $(CONCERTO_ROOT)/components/glut.mak
 -include $(CONCERTO_ROOT)/components/opencl.mak
 -include $(CONCERTO_ROOT)/components/openmp.mak
