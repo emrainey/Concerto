@@ -14,29 +14,27 @@
 
 ifeq ($($(_MODULE)_TYPE),jar)
 
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(info Building JAR file $(_MODULE))
-endif
-
 JAR := jar
-JC  := javac
-
-EMPTY:=
-SPACE:=$(EMPTY) $(EMPTY)
+JAVAC := javac
 
 ###############################################################################
 
-$(_MODULE)_BIN       := $($(_MODULE)_TDIR)/$($(_MODULE)_TARGET).jar
+$(_MODULE)_BIN       := $(TDIR)/$($(_MODULE)_TARGET).jar
 $(_MODULE)_CLASSES   := $(patsubst %.java,%.class,$(JSOURCES))
-$(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$($(_MODULE)_ODIR)/$(cls))
+$(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$(ODIR)/$(cls))
+
+#ifeq ($(SHOW_MAKEDEBUG),1)
+$(info Building JAR file $($(_MODULE)_BIN) from $($(_MODULE)_OBJS) which are $($(_MODULE)_CLASSES))
+#endif
+
 ifdef CLASSPATH
-$(_MODULE)_CLASSPATH := $(CLASSPATH) $($(_MODULE)_ODIR)
+$(_MODULE)_CLASSPATH := $(CLASSPATH) $(ODIR)
 CLASSPATH            :=
 else
-$(_MODULE)_CLASSPATH := $($(_MODULE)_ODIR)
+$(_MODULE)_CLASSPATH := $(ODIR)
 endif
 ifneq ($($(_MODULE)_JAVA_LIBS),)
-$(_MODULE)_JAVA_DEPS := $(foreach lib,$($(_MODULE)_JAVA_LIBS),$($(_MODULE)_TDIR)/$(lib).jar)
+$(_MODULE)_JAVA_DEPS := $(foreach lib,$($(_MODULE)_JAVA_LIBS),$(TDIR)/$(lib).jar)
 $(_MODULE)_CLASSPATH += $($(_MODULE)_JAVA_DEPS)
 endif
 
@@ -44,7 +42,7 @@ ifeq ($(SHOW_MAKEDEBUG),1)
 $(info CLASSPATH=$($(_MODULE)_CLASSPATH))
 endif
 $(_MODULE)_CLASSPATH := $(subst $(SPACE),:,$($(_MODULE)_CLASSPATH))
-JC_OPTS              := -deprecation -classpath $($(_MODULE)_CLASSPATH) -sourcepath $($(_MODULE)_SDIR) -d $($(_MODULE)_ODIR)
+JC_OPTS              := -deprecation -classpath $($(_MODULE)_CLASSPATH) -sourcepath $(SDIR) -d $(ODIR)
 ifeq ($(TARGET_BUILD),debug)
 JC_OPTS              += -g -verbose
 else ifneq ($(filter $(TARGET_BUILD),release production),)
@@ -63,26 +61,23 @@ ENTRY                :=
 else
 $(_MODULE)_ENTRY     := Main
 endif
-JAR_OPTS             := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) $(foreach cls,$($(_MODULE)_CLASSES),-C $($(_MODULE)_ODIR) $(cls))
+JAR_OPTS             := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) $(foreach cls,$($(_MODULE)_CLASSES),-C $(ODIR) $(cls))
 
 ###############################################################################
 
-
-define $(_MODULE)_DEPEND_CLS
-$($(_MODULE)_ODIR)/$(1).class: $($(_MODULE)_SDIR)/$(1).java $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $($(_MODULE)_ODIR)/.gitignore
-	@echo Compiling Java $(1).java
-	$(Q)$(JC) $(JC_OPTS) $($(_MODULE)_SDIR)/$(1).java
+define $(_MODULE)_BUILD
+build:: $($(_MODULE)_BIN)
 endef
 
-define $(_MODULE)_DEPEND_JAR
-uninstall::
-build:: $($(_MODULE)_BIN)
-	@echo Building for $($(_MODULE)_BIN)
-install:: $($(_MODULE)_BIN)
+define $(_MODULE)_COMPILE_TOOLS
 
-$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
-	@echo Jar-ing Classes $($(_MODULE)_CLASSES)
+$(ODIR)/%.class: $(SDIR)/%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
+	@echo Compiling Java $$(notdir $$<)
+	$(Q)$(JAVAC) $(JC_OPTS) $$<
+$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $(SDIR)/$(SUBMAKEFILE)
+	@echo Jar-ing Classes $$(notdir $$@)
 	$(Q)$(JAR) $(JAR_OPTS) $(foreach cls,$($(_MODULE)_CLASSES),-C $($(_MODULE)_ODIR) $(cls))
+	
 endef
 
 endif

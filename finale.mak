@@ -21,6 +21,7 @@ endif
 
 -include $(CONCERTO_ROOT)/components/sdl.mak
 -include $(CONCERTO_ROOT)/components/glut.mak
+-include $(CONCERTO_ROOT)/components/cuda.mak
 -include $(CONCERTO_ROOT)/components/opencl.mak
 -include $(CONCERTO_ROOT)/components/openmp.mak
 
@@ -31,7 +32,7 @@ endif
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info #### $(_MODULE) ########################################################)
 $(foreach mvar,$(sort $(_MODULE_VARS)),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
-$(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+$(foreach mvar,$(sort	 $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
 endif
 
 $(_MODULE)_TARGET := $(TARGET)
@@ -241,7 +242,7 @@ $(eval $(call $(_MODULE)_PREBUILT,$(PREBUILT)))
 
 else ifeq ($($(_MODULE)_TYPE),jar)
 
-$(eval $(call $(_MODULE)_DEPEND_JAR))
+$(eval $(call $(_MODULE)_BUILD))
 
 else ifneq ($(filter $($(_MODULE)_TYPE),deb tar),)
 

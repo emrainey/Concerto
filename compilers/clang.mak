@@ -17,7 +17,7 @@ ifeq ($(TARGET_FAMILY),$(HOST_FAMILY))
 endif
 
 # check for the supported CPU types for this compiler 
-ifeq ($(filter $(TARGET_FAMILY),X86 x86_64),)
+ifeq ($(filter $(TARGET_FAMILY),X86 x86_64 ARM),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
 
