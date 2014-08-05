@@ -23,9 +23,9 @@ $(_MODULE)_BIN       := $(TDIR)/$($(_MODULE)_TARGET).jar
 $(_MODULE)_CLASSES   := $(patsubst %.java,%.class,$(JSOURCES))
 $(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$(ODIR)/$(cls))
 
-#ifeq ($(SHOW_MAKEDEBUG),1)
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Building JAR file $($(_MODULE)_BIN) from $($(_MODULE)_OBJS) which are $($(_MODULE)_CLASSES))
-#endif
+endif
 
 ifdef CLASSPATH
 $(_MODULE)_CLASSPATH := $(CLASSPATH) $(ODIR)

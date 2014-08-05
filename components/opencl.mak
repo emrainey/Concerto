@@ -14,6 +14,9 @@
 
 ifeq ($(USE_OPENCL),true)
 	OCL_LIB ?= OpenCL
+        ifeq ($(SHOW_MAKEDEBUG),1)
+            $(info Enabled OpenCL for $(_MODULE))
+        endif
 	ifeq ($(HOST_OS),Windows_NT)
 		ifeq ($(OPENCL_ROOT),)
 			$(error OPENCL_ROOT must be defined to use OPENCL_ROOT)

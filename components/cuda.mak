@@ -13,7 +13,9 @@
 # limitations under the License.
 
 ifeq ($(USE_CUDA),true)
-    $(info CUDA Enabled)
+    ifeq ($(SHOW_MAKEDEBUG),1)
+        $(info CUDA Enabled for $(_MODULE))
+    endif
     CUDA_LIBS := cudart cublas cufft curand cusparse nppc
     ifeq ($(HOST_OS),Windows_NT)
         ifeq ($(CUDA_ROOT),)

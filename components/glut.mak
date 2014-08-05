@@ -13,6 +13,9 @@
 # limitations under the License.
 
 ifeq ($(USE_GLUT),true)
+        ifeq ($(SHOW_MAKEDEBUG),1)
+            $(info Enabled GLUT for $(_MODULE))
+        endif
 	ifeq ($(HOST_OS),Wind	ows_NT)
 		ifeq ($(GLUT_HOME),)
 			$(error GLUT_HOME must be defined to use GLUT)

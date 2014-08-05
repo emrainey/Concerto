@@ -13,6 +13,9 @@
 # limitations under the License.
 
 ifeq ($(USE_OPENMP),true)
+        ifeq ($(SHOW_MAKEDEBUG),1)
+            $(info Enabled OpenMP for $(_MODULE))
+        endif
 	ifeq ($(HOST_OS),LINUX)
 		CFLAGS += -fopenmp
 		SYS_SHARED_LIBS += gomp
