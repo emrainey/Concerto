@@ -90,11 +90,11 @@ else ifeq ($($(_MODULE)_TYPE),jar)
 else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
 	include $(CONCERTO_ROOT)/compilers/opencl.mak
 else ifeq ($($(_MODULE)_TYPE),deb)
-    include $(CONCERTO_ROOT)/tools/dpkg.mak
+	include $(CONCERTO_ROOT)/tools/dpkg.mak
 else ifeq ($($(_MODULE)_TYPE),tar)
-    include $(CONCERTO_ROOT)/tools/tar.mak 
+	include $(CONCERTO_ROOT)/tools/tar.mak 
 else ifeq ($($(_MODULE)_TYPE),doxygen)
-    include $(CONCERTO_ROOT)/tools/doxygen.mak
+	include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
 # \todo add new build types here!    
@@ -118,6 +118,8 @@ else ifeq ($(HOST_COMPILER),TMS470)
 	include $(CONCERTO_ROOT)/compilers/tms470.mak
 else ifeq ($(HOST_COMPILER),TIARMCGT)
 	include $(CONCERTO_ROOT)/compilers/tiarmcgt.mak
+else ifeq ($(HOST_COMPILER),NVCC)
+	include $(CONCERTO_ROOT)/compilers/nvcc.mak
 else
 $(error Undefined compiler $(HOST_COMPILER))	
 endif

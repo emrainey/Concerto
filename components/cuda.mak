@@ -36,6 +36,7 @@ ifeq ($(USE_CUDA),true)
                 $(error CUDA_ROOT must be defined to use CUDA)
             endif
         endif
+        HOST_COMPILER := NVCC
         IDIRS += $(CUDA_ROOT)/include
         LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
         ifeq ($(filter $(PLATFORM_LIBS),$(CUDA_LIBS)),)
