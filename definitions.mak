@@ -21,8 +21,11 @@ all-type-files-in-this = $(foreach kern,$(call all-type-files-in-this-a,$(1),$(2
 else
 all-type-files-in-this = $(subst $(SDIR)/,,$(shell find $(SDIR)/$(2) -maxdepth 1 -name '$(1)'))
 endif
+# This finds files in a specific folder
 all-type-files-in = $(notdir $(wildcard $(2)/$(1)))
-all-type-files = $(call all-type-files-in,$(1),$(SDIR))
+# This finds all the files within and under a folder of a specific type
+all-type-files = $(subst $(SDIR)/,,$(call rwildcard,$(SDIR),$(1)))
+
 all-java-files = $(call all-type-files,*.java)
 all-c-files    = $(call all-type-files,*.c)
 all-cpp-files  = $(call all-type-files,*.cpp)

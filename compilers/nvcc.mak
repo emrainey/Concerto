@@ -185,6 +185,14 @@ $(ODIR)/%.dep: $(SDIR)/%.c $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_INCLUDES) -M $$< > $$@
 
+$(ODIR)/%.dep: $(SDIR)/%.cu $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
+	@echo [NVCC] Dependencies for $$(notdir $$<)
+	$(Q)$(CC) $($(_MODULE)_INCLUDES) -M $$< > $$@
+
+$(ODIR)/%.dep: $(SDIR)/%.cpp $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
+	@echo [NVCC] Dependencies for $$(notdir $$<)
+	$(Q)$(CC) $($(_MODULE)_INCLUDES) -M $$< > $$@
+
 $(ODIR)/%.o: $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
