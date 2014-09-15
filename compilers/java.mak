@@ -61,7 +61,7 @@ ENTRY                :=
 else
 $(_MODULE)_ENTRY     := Main
 endif
-JAR_OPTS             := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) $(foreach cls,$($(_MODULE)_CLASSES),-C $(ODIR) $(cls))
+JAR_OPTS             := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY)
 
 ###############################################################################
 
@@ -74,10 +74,11 @@ define $(_MODULE)_COMPILE_TOOLS
 $(ODIR)/%.class: $(SDIR)/%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
 	@echo Compiling Java $$(notdir $$<)
 	$(Q)$(JAVAC) $(JC_OPTS) $$<
+
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $(SDIR)/$(SUBMAKEFILE)
-	@echo Jar-ing Classes $$(notdir $$@)
-	$(Q)$(JAR) $(JAR_OPTS) $(foreach cls,$($(_MODULE)_CLASSES),-C $($(_MODULE)_ODIR) $(cls))
-	
+	@echo Jar-ing all package classes in $$(notdir $$@)
+	$(Q)$(JAR) $(JAR_OPTS) -C $($(_MODULE)_ODIR) .
+
 endef
 
 endif
