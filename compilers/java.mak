@@ -22,6 +22,11 @@ JAVAC := javac
 $(_MODULE)_BIN       := $(TDIR)/$($(_MODULE)_TARGET).jar
 $(_MODULE)_CLASSES   := $(patsubst %.java,%.class,$(JSOURCES))
 $(_MODULE)_OBJS      := $(foreach cls,$($(_MODULE)_CLASSES),$(ODIR)/$(cls))
+$(_MODULE)_PKGS      := $(sort $(foreach cls,$($(_MODULE)_CLASSES),$(dir $(cls))))
+
+#$(foreach cls,$($(_MODULE)_CLASSES),$(info $(_MODULE) needs cls $(cls)))
+#$(foreach obj,$($(_MODULE)_OBJS),$(info $(_MODULE) needs obj $(obj)))
+#$(foreach pkg,$($(_MODULE)_PKGS),$(info $(_MODULE) has package $(pkg)))
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info Building JAR file $($(_MODULE)_BIN) from $($(_MODULE)_OBJS) which are $($(_MODULE)_CLASSES))
@@ -49,19 +54,24 @@ else ifneq ($(filter $(TARGET_BUILD),release production),)
 # perform obfuscation?
 endif
 
+$(_MODULE)_JAR_OPTS  := cvf
 ifdef MANIFEST
-$(_MODULE)_MANIFEST  := -m $(MANIFEST)
+$(_MODULE)_JAR_OPTS  += m
+$(_MODULE)_MANIFEST  := $(MANIFEST)
 MANIFEST             :=
 else
 $(_MODULE)_MANIFEST  :=
 endif
+
 ifdef ENTRY
+$(_MODULE)_JAR_OPTS  += e
 $(_MODULE)_ENTRY     := $(ENTRY)
 ENTRY                :=
 else
-$(_MODULE)_ENTRY     := Main
+$(_MODULE)_ENTRY     := 
 endif
-JAR_OPTS             := cvfe $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY)
+
+$(_MODULE)_JAR_OPTS	 := $(call concat,$($(_MODULE)_JAR_OPTS))
 
 ###############################################################################
 
@@ -71,13 +81,16 @@ endef
 
 define $(_MODULE)_COMPILE_TOOLS
 
-$(ODIR)/%.class: $(SDIR)/%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
+$(foreach pkg,$($(_MODULE)_PKGS),
+$(ODIR)/$(pkg)%.class: $(SDIR)/$(pkg)%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
 	@echo Compiling Java $$(notdir $$<)
 	$(Q)$(JAVAC) $(JC_OPTS) $$<
+)
 
-$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $(SDIR)/$(SUBMAKEFILE)
+$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $(SDIR)/$(SUBMAKEFILE) $(TDIR)/.gitignore
 	@echo Jar-ing all package classes in $$(notdir $$@)
-	$(Q)$(JAR) $(JAR_OPTS) -C $($(_MODULE)_ODIR) .
+	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) -C $($(_MODULE)_ODIR) . 
+	$(Q)$(JAR) -i $$@
 
 endef
 

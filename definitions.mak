@@ -23,6 +23,8 @@ all-type-files-in-this = $(subst $(SDIR)/,,$(shell find $(SDIR)/$(2) -maxdepth 1
 endif
 # This finds files in a specific folder
 all-type-files-in = $(notdir $(wildcard $(2)/$(1)))
+# This finds all the files within and under a specific folder 
+all-type-files-under = $(subst $(SDIR)/,,$(call rwildcard,$(SDIR)/$(1),$(2)))
 # This finds all the files within and under a folder of a specific type
 all-type-files = $(subst $(SDIR)/,,$(call rwildcard,$(SDIR),$(1)))
 
