@@ -47,11 +47,7 @@ endif
 # If the user is building for a remote core, they should set this variable
 ifeq ($(HOST_PLATFORM),$(TARGET_PLATFORM))
 # If the user supplied zero as the number of cores, we try to auto-detect on HOST. 
-ifeq ($(TARGET_OS),Windows_NT)
-$(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=$(NUMBER_OF_PROCESSORS)))
-else
-$(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=$(shell cat /proc/cpuinfo | grep processor | wc -l)))
-endif
+$(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=$(HOST_NUM_CORES)))
 else
 # if they didn't set it to one.
 $(if $(filter 0,$(TARGET_NUM_CORES)),$(eval TARGET_NUM_CORES=1))

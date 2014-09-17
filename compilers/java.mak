@@ -16,6 +16,7 @@ ifeq ($($(_MODULE)_TYPE),jar)
 
 JAR := jar
 JAVAC := javac
+JAVA := java
 
 ###############################################################################
 
@@ -55,20 +56,41 @@ else ifneq ($(filter $(TARGET_BUILD),release production),)
 endif
 
 $(_MODULE)_JAR_OPTS  := cvf
+$(_MODULE)_ENTRY     := $(ENTRY)
 ifdef MANIFEST
 $(_MODULE)_JAR_OPTS  += m
 $(_MODULE)_MANIFEST  := $(MANIFEST)
 MANIFEST             :=
 else
-$(_MODULE)_MANIFEST  :=
+$(_MODULE)_MANIFEST  := $(ODIR)/Manifest.mf
+$(_MODULE)_JAR_OPTS  += m
+
+define $(_MODULE)_MANIFEST_PRODUCER
+$($(_MODULE)_MANIFEST): $($(_MODULE)_JAVA_DEPS) $(SDIR)/$(SUBMAKEFILE)
+	$(PRINT) Using ENTRY=$($(_MODULE)_ENTRY)
+	$(PRINT) "Manifest-Version: 1.0" >> $$@
+ifneq ($($(_MODULE)_JAVA_LIBS),$(EMPTY))
+	$(PRINT) "Class-Path: $(addsuffix .jar,$($(_MODULE)_JAVA_LIBS))" >> $$@
+endif
+ifneq ($(strip $($(_MODULE)_ENTRY)),$(EMPTY))
+	@echo "Main-Class: $($(_MODULE)_ENTRY)" >> $$@
+endif
+	$(PRINT) "Created-by: Concerto" >> $$@
+endef
+
+$(eval $(call $(_MODULE)_MANIFEST_PRODUCER))
+
 endif
 
-ifdef ENTRY
-$(_MODULE)_JAR_OPTS  += e
-$(_MODULE)_ENTRY     := $(ENTRY)
+ifneq ($(strip $($(_MODULE)_ENTRY)),$(EMPTY))
 ENTRY                :=
-else
-$(_MODULE)_ENTRY     := 
+TESTABLE_MODULES 	 += $(_MODULE)
+define $(_MODULE)_JAVA_TEST
+.PHONY: $(_MODULE)_test
+$(_MODULE)_test: $($(_MODULE)_BIN)
+	$(Q)CLASSPATH=$(TDIR) $(JAVA) -jar $($(_MODULE)_BIN)
+endef
+$(eval $(call $(_MODULE)_JAVA_TEST))
 endif
 
 $(_MODULE)_JAR_OPTS	 := $(call concat,$($(_MODULE)_JAR_OPTS))
@@ -83,13 +105,13 @@ define $(_MODULE)_COMPILE_TOOLS
 
 $(foreach pkg,$($(_MODULE)_PKGS),
 $(ODIR)/$(pkg)%.class: $(SDIR)/$(pkg)%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
-	@echo Compiling Java $$(notdir $$<)
+	$(PRINT) Compiling Java $$(notdir $$<)
 	$(Q)$(JAVAC) $(JC_OPTS) $$<
 )
 
-$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $(SDIR)/$(SUBMAKEFILE) $(TDIR)/.gitignore
-	@echo Jar-ing all package classes in $$(notdir $$@)
-	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) $($(_MODULE)_ENTRY) -C $($(_MODULE)_ODIR) . 
+$($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_MANIFEST) $(SDIR)/$(SUBMAKEFILE) $(TDIR)/.gitignore
+	$(PRINT) Jar-ing all package classes in $$(notdir $$@)
+	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) -C $($(_MODULE)_ODIR) . 
 	$(Q)$(JAR) -i $$@
 
 endef

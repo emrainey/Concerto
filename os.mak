@@ -50,12 +50,14 @@ ifeq ($(HOST_OS),Windows_NT)
     PATH_CONV=$(subst /,\,$(1))
     PATH_SEP=\\
     PATH_SEPD=$(strip \)
+    PATH_CAT=;
     HOST_COMPILER?=CL
 else
     STRING_ESCAPE=$(1)
     PATH_CONV=$(1)
     PATH_SEP=/
     PATH_SEPD=/
+    PATH_CAT=:
     HOST_COMPILER?=GCC
 endif
 
@@ -66,5 +68,7 @@ $(info ComSpec=$(ComSpec))
 else
     SHELL:=/bin/sh
 endif
+
+PATH_CONCAT = $(subst $(SPACE),$(PATH_CAT),$(1))
 
 $(info SHELL=$(SHELL))
