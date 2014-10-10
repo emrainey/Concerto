@@ -14,7 +14,11 @@
 
 ifeq ($(USE_SDL),true)
     ifeq ($(HOST_OS),Windows_NT)
-        $(error SDL Not supported yet!)
+        ifeq ($(SDL_PKG),)
+            $(error SDL_PKG is not set, but SDL is requested by $(_MODULE)!)
+         else
+            
+         endif
     else ifeq ($(HOST_OS),LINUX)
         ifneq ($(SDL_PKG),)
             SDL_LIBS := $(subst -l,,$(shell pkg-config --libs-only-l $(SDL_PKG)))
@@ -24,7 +28,7 @@ ifeq ($(USE_SDL),true)
             DEFS += USE_SDL
             SYS_SHARED_LIBS += $(SDL_LIBS)
         else
-            $(error SDL_PKG is not set!)
+            $(error SDL_PKG is not set, but SDL is requested by $(_MODULE)!)
         endif
     else ifeq ($(HOST_OS),DARWIN)
         $(error SDL not supported yet!)

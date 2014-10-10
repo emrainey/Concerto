@@ -125,6 +125,7 @@ endif
 $(foreach mod,$(filter MODULE_%,$(.VARIABLES)),$(eval $(mod):=$(EMPTY)))
 
 # Define convenience variables
+RDIR := $(subst $(HOST_ROOT)/,,$($(_MODULE)_SDIR))
 SDIR := $($(_MODULE)_SDIR)
 TDIR := $($(_MODULE)_TDIR)
 ODIR := $($(_MODULE)_ODIR)
