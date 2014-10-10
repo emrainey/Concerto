@@ -67,13 +67,13 @@ $(_MODULE)_JAR_OPTS  += m
 
 define $(_MODULE)_MANIFEST_PRODUCER
 $($(_MODULE)_MANIFEST): $($(_MODULE)_JAVA_DEPS) $(SDIR)/$(SUBMAKEFILE)
-	$(PRINT) Using ENTRY=$($(_MODULE)_ENTRY)
-	$(PRINT) "Manifest-Version: 1.0" >> $$@
+	$(PRINT) "Manifest-Version: 1.0" > $$@
 ifneq ($($(_MODULE)_JAVA_LIBS),$(EMPTY))
 	$(PRINT) "Class-Path: $(addsuffix .jar,$($(_MODULE)_JAVA_LIBS))" >> $$@
 endif
 ifneq ($(strip $($(_MODULE)_ENTRY)),$(EMPTY))
-	@echo "Main-Class: $($(_MODULE)_ENTRY)" >> $$@
+	$(PRINT) Using ENTRY=$($(_MODULE)_ENTRY)
+	$(PRINT) "Main-Class: $($(_MODULE)_ENTRY)" >> $$@
 endif
 	$(PRINT) "Created-by: Concerto" >> $$@
 endef
@@ -84,7 +84,7 @@ endif
 
 ifneq ($(strip $($(_MODULE)_ENTRY)),$(EMPTY))
 ENTRY                :=
-TESTABLE_MODULES 	 += $(_MODULE)
+TESTABLE_MODULES     += $(_MODULE)
 define $(_MODULE)_JAVA_TEST
 .PHONY: $(_MODULE)_test
 $(_MODULE)_test: $($(_MODULE)_BIN)
@@ -93,7 +93,7 @@ endef
 $(eval $(call $(_MODULE)_JAVA_TEST))
 endif
 
-$(_MODULE)_JAR_OPTS	 := $(call concat,$($(_MODULE)_JAR_OPTS))
+$(_MODULE)_JAR_OPTS  := $(call concat,$($(_MODULE)_JAR_OPTS))
 
 ###############################################################################
 

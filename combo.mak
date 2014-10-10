@@ -122,7 +122,14 @@ $(info SCM_ROOT=$(SCM_ROOT))
 $(info SCM_VERSION=$(SCM_VERSION))
 endif
 
-include $(TARGET_MAKEFILES)
+define concerto_include
+    $(info including $(dir $(1)))
+    include $(1)
+endef
+
+$(foreach mf,$(TARGET_MAKEFILES),$(eval $(call concerto_include,$(mf))))
+
+#include $(TARGET_MAKEFILES)
 
 # Define a rule to take care of libraries that are actual "system" libraries and 
 # are not present in the build, they will look like TDIR libraries.
