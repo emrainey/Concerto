@@ -126,6 +126,9 @@ endif
 
 ifeq ($(HOST_CPU),$(TARGET_CPU))
 $(_MODULE)_COPT += -march=native
+ifneq ($(filter $(TARGET_FAMILY),X86 x86_64),)
+$(_MODULE)_COPT += -mno-avx
+endif
 else ifeq ($(TARGET_CPU),M3)
 $(_MODULE)_COPT += -mcpu=cortex-m3
 else ifeq ($(TARGET_CPU),M4)
