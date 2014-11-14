@@ -64,6 +64,14 @@ else
 Q:=@
 endif
 
+
+# Optionally include any environment variables from local directory where the Makefile is called from
+HOST_ENVIRONMENT ?= $(HOST_ROOT)/environment.mak
+ifneq ($(wildcard $(HOST_ENVIRONMENT)),)
+$(info Using $(HOST_ENVIRONMENT) for environment variables.)
+-include $(HOST_ENVIRONMENT)
+endif
+
 include $(CONCERTO_ROOT)/os.mak
 include $(CONCERTO_ROOT)/machine.mak
 include $(CONCERTO_ROOT)/shell.mak

@@ -68,7 +68,9 @@ ifeq ($(HOST_OS),Windows_NT)
 COMPILER_ROOTS += GCC_ROOT
 endif
 
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(foreach root,$(COMPILER_ROOTS),$(info $(origin $(root)) $(root)=$(value $(root))))
+endif
 
 # The compiler which do not have roots set.
 REMOVE_ROOTS := $(foreach root,$(COMPILER_ROOTS),$(if $(filter $(origin $(root)),undefined),$(root)))
