@@ -78,7 +78,7 @@ include $(CONCERTO_ROOT)/shell.mak
 include $(CONCERTO_ROOT)/scm.mak
 
 # Check for COMBOS, if none existed make a single COMBO
-TARGET_COMBOS ?= PC:$(HOST_OS):$(HOST_CPU):0:$(TARGET_BUILD):$(HOST_COMPILER)
+TARGET_COMBOS ?= $(HOST_PLATFORM):$(HOST_OS):$(HOST_CPU):0:$(TARGET_BUILD):$(HOST_COMPILER)
 
 # Find all the Makfiles in the subfolders, these will be pulled in to make
 TARGET_MAKEFILES := $(filter %/$(SUBMAKEFILE),$(sort $(foreach d,$(DIRECTORIES),$(strip $(call rwildcard,$(d)/,*.mak)))))
