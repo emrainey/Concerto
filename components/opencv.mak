@@ -18,8 +18,14 @@ ifeq ($(USE_OPENCV),true)
     endif
     
     ifeq ($(HOST_OS),LINUX)
-        IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
-        SYS_SHARED_LIBS += $(subst -l,$(EMPTY),$(shell pkg-config --libs opencv)) opencv_gpu
-        DEFS += USE_OPENCV
+        ifeq ($(TARGET_PLATFORM),PC)
+            IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
+            SYS_SHARED_LIBS += $(subst -l,$(EMPTY),$(shell pkg-config --libs opencv)) opencv_gpu
+            DEFS += USE_OPENCV
+        else ifeq ($(TARGET_PLATFORM),DEVBOARD)
+            IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
+            SYS_SHARED_LIBS += $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs opencv)))))
+            DEFS += USE_OPENCV
+        endif
     endif
 endif
