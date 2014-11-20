@@ -13,40 +13,40 @@
 # limitations under the License.
 
 ifeq ($(USE_OPENCL),true)
-	OCL_LIB ?= OpenCL
-        ifeq ($(SHOW_MAKEDEBUG),1)
-            $(info Enabled OpenCL for $(_MODULE))
+    OCL_LIB ?= OpenCL
+    ifeq ($(SHOW_MAKEDEBUG),1)
+        $(info Enabled OpenCL for $(_MODULE))
+    endif
+    ifeq ($(HOST_OS),Windows_NT)
+        ifeq ($(OPENCL_ROOT),)
+            $(error OPENCL_ROOT must be defined to use OPENCL_ROOT)
         endif
-	ifeq ($(HOST_OS),Windows_NT)
-		ifeq ($(OPENCL_ROOT),)
-			$(error OPENCL_ROOT must be defined to use OPENCL_ROOT)
-		endif
-		IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
-		LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64
-		ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
-		    PLATFORM_LIBS += $(OCL_LIB)
-		endif
-		DEFS += USE_OPENCL
-	else ifeq ($(HOST_OS),LINUX)
-		# User should install GLUT/Mesa via package system
-		IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
-		LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64
-		ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
-			PLATFORM_LIBS += $(OCL_LIB)
-		endif
-		DEFS += USE_OPENCL
-	else ifeq ($(HOST_OS),DARWIN)
-		# User should have XCode install OpenCL
-		$(_MODULE)_FRAMEWORKS += -framework OpenCL
-		DEFS += USE_OPENCL
-	endif
-	
+        IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
+        LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64
+        ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
+            SYS_SHARED_LIBS += $(OCL_LIB)
+        endif
+        DEFS += USE_OPENCL
+    else ifeq ($(HOST_OS),LINUX)
+        # User should install GLUT/Mesa via package system
+        IDIRS += $(OPENCL_ROOT)/include $(OPENCL_ROOT)/inc
+        LDIRS += $(OPENCL_ROOT)/lib $(OPENCL_ROOT)/lib64
+        ifeq ($(filter $(PLATFORM_LIBS),$(OCL_LIB)),)
+            SYS_SHARED_LIBS += $(OCL_LIB)
+        endif
+        DEFS += USE_OPENCL
+    else ifeq ($(HOST_OS),DARWIN)
+        # User should have XCode install OpenCL
+        $(_MODULE)_FRAMEWORKS += -framework OpenCL
+        DEFS += USE_OPENCL
+    endif
+    
     # OpenCL-Environment Defines
     ifeq ($(HOST_OS),CYGWIN)
-    	DEFS += KDIR="\"$(KDIR)\"" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="\"$(CL_USER_DEVICE_TYPE)\""
+        DEFS += KDIR="\"$(KDIR)\"" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="\"$(CL_USER_DEVICE_TYPE)\""
     else ifeq ($(HOST_OS),Windows_NT)
-    	DEFS += KDIR="$(call PATH_CONV,$(KDIR))\\" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)"
+        DEFS += KDIR="$(call PATH_CONV,$(KDIR))\\" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)"
     else
-    	DEFS += KDIR="$(KDIR)" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)" $(if $(CL_DEBUG),CL_DEBUG=1)
+        DEFS += KDIR="$(KDIR)" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="$(CL_USER_DEVICE_TYPE)" $(if $(CL_DEBUG),CL_DEBUG=1)
     endif
 endif

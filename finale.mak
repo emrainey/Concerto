@@ -24,6 +24,7 @@ endif
 -include $(CONCERTO_ROOT)/components/cuda.mak
 -include $(CONCERTO_ROOT)/components/opencl.mak
 -include $(CONCERTO_ROOT)/components/openmp.mak
+-include $(CONCERTO_ROOT)/components/opencv.mak
 
 # Users may use the new syntax of all variables starting with "MODULE_" but may not quite
 # yet so don't erase the value if it's set.

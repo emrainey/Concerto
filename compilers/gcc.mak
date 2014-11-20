@@ -46,7 +46,8 @@ AS = $(GCC_ROOT)/bin/$(CROSS_COMPILE)as
 AR = $(GCC_ROOT)/bin/$(CROSS_COMPILE)ar
 LD = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
 else
-CC = $(CROSS_COMPILE)gcc
+# CC=distcc allows for distributed builds
+CC ?= $(CROSS_COMPILE)gcc
 CP = $(CROSS_COMPILE)g++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
