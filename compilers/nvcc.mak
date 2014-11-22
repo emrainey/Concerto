@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(USE_CUDA),true)
+ifeq ($(HAS_CUDA),true)
 
 ifeq ($(TARGET_CPU),$(HOST_CPU))
 	CROSS_COMPILE:=
@@ -81,7 +81,6 @@ else
 $(_MODULE)_PLATFORM_LIBS := $(PLATFORM_LIBS)
 endif
 $(_MODULE)_DEP_HEADERS := $(foreach inc,$($(_MODULE)_HEADERS),$($(_MODULE)_SDIR)/$(inc).h)
-$(_MODULE)_COPT += -std=c99
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
@@ -209,6 +208,13 @@ $(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$< -o $$@ $(LOGGING)
 endef
+
+ifneq ($(OLD_COMPILER),)
+	ifeq ($(SHOW_MAKEDEBUG),1)
+    	$(info HOST_COMPILER reset to '$(OLD_COMPILER)')
+    endif
+    HOST_COMPILER:=$(strip $(OLD_COMPILER))
+endif 
 
 endif
 

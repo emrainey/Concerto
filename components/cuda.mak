@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ifeq ($(USE_CUDA),true)
+	OLD_COMPILER := 
     ifeq ($(SHOW_MAKEDEBUG),1)
         $(info CUDA Enabled for $(_MODULE))
     endif
@@ -24,7 +25,7 @@ ifeq ($(USE_CUDA),true)
         IDIRS += $(CUDA_ROOT)/include $(CUDA_ROOT)/inc
         LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
         ifeq ($(filter $(PLATFORM_LIBS),$(CUDA_LIBS)),)
-            PLATFORM_LIBS += $(CUDA_LIBS)
+            SYS_SHARED_LIBS += $(CUDA_LIBS)
         endif
         DEFS += USE_CUDA __CUDA_API_VERSION=0x6000
     else ifeq ($(HOST_OS),LINUX)
@@ -36,11 +37,14 @@ ifeq ($(USE_CUDA),true)
                 $(error CUDA_ROOT must be defined to use CUDA)
             endif
         endif
-        HOST_COMPILER := NVCC
+        ifneq ($(HAS_CUDA),)
+        	OLD_COMPILER := $(strip $(HOST_COMPILER))
+        	HOST_COMPILER := NVCC
+        endif
         IDIRS += $(CUDA_ROOT)/include
         LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
         ifeq ($(filter $(PLATFORM_LIBS),$(CUDA_LIBS)),)
-            PLATFORM_LIBS += $(CUDA_LIBS)
+            SYS_SHARED_LIBS += $(CUDA_LIBS)
         endif
         DEFS += USE_CUDA
     else ifeq ($(HOST_OS),DARWIN)

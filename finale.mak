@@ -21,7 +21,7 @@ endif
 
 -include $(CONCERTO_ROOT)/components/sdl.mak
 -include $(CONCERTO_ROOT)/components/glut.mak
--include $(CONCERTO_ROOT)/components/cuda.mak
+-include $(CONCERTO_ROOT)/components/cuda.mak # This may change the compiler
 -include $(CONCERTO_ROOT)/components/opencl.mak
 -include $(CONCERTO_ROOT)/components/openmp.mak
 -include $(CONCERTO_ROOT)/components/opencv.mak
@@ -103,8 +103,11 @@ endif
 
 ifeq ($(NEEDS_COMPILER),1)
 # which compiler does this need?
+ifeq ($(SHOW_MAKEDEBUG),1)
+    $(info Using HOST_COMPILER = '$(HOST_COMPILER)' for $(_MODULE))
+endif	
 ifeq ($(HOST_COMPILER),GCC)
-	include $(CONCERTO_ROOT)/compilers/gcc.mak
+    include $(CONCERTO_ROOT)/compilers/gcc.mak
 else ifeq ($(HOST_COMPILER),CLANG)
 	include $(CONCERTO_ROOT)/compilers/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
@@ -120,9 +123,11 @@ else ifeq ($(HOST_COMPILER),TMS470)
 else ifeq ($(HOST_COMPILER),TIARMCGT)
 	include $(CONCERTO_ROOT)/compilers/tiarmcgt.mak
 else ifeq ($(HOST_COMPILER),NVCC)
-	include $(CONCERTO_ROOT)/compilers/nvcc.mak
-else
-$(error Undefined compiler $(HOST_COMPILER))	
+    include $(CONCERTO_ROOT)/compilers/nvcc.mak
+else ifeq ($(HOST_COMPILER),)
+$(error HOST_COMPILER $(origin HOST_COMPILER))
+else ifeq ($(filter $(HOST_COMPILER),GCC CLANG CL RVCT CGT6X QCC TMS470 TIARMCGT NVCC),)
+$(error HOST_COMPILER => $(HOST_COMPILER) is unknown)
 endif
 endif
 
@@ -305,6 +310,7 @@ $(_MODULE)_vars::
 	$(PRINT) _MODULE=$(_MODULE)
 	$(PRINT) $(_MODULE)_TARGET=$($(_MODULE)_TARGET)
 	$(PRINT) $(_MODULE)_BIN =$($(_MODULE)_BIN)
+	$(PRINT) $(_MODULE)_OUT =$($(_MODULE)_OUT)
 	$(PRINT) $(_MODULE)_TYPE=$($(_MODULE)_TYPE)
 	$(PRINT) $(_MODULE)_OBJS=$($(_MODULE)_OBJS)
 	$(PRINT) $(_MODULE)_SDIR=$($(_MODULE)_SDIR)

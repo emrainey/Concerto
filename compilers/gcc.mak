@@ -46,8 +46,12 @@ AS = $(GCC_ROOT)/bin/$(CROSS_COMPILE)as
 AR = $(GCC_ROOT)/bin/$(CROSS_COMPILE)ar
 LD = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
 else
-# CC=distcc allows for distributed builds
-CC ?= $(CROSS_COMPILE)gcc
+# distcc=yes allows for distributed builds
+ifeq ($(distcc),yes)
+CC = distcc
+else
+CC = $(CROSS_COMPILE)gcc
+endif
 CP = $(CROSS_COMPILE)g++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
@@ -224,7 +228,7 @@ $(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Compiling C++ $$(notdir $$<)
-	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [GCC] Assembling $$(notdir $$<)
