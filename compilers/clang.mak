@@ -78,7 +78,7 @@ $(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -Weverything -Wno-deprecated
+$(_MODULE)_COPT += -Weverything -Wno-deprecated -Wno-c++98-compat
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3
@@ -87,15 +87,13 @@ else ifneq ($(filter $(TARGET_BUILD),release production),)
 $(_MODULE)_COPT += -O3
 endif
 
-# This doesn't appear to do anything with CLANG
+# This doesn't appear to do anything with CLANG (shouldn't it?)
 ifeq ($(TARGET_FAMILY),ARM)
-$(_MODULE)_COPT += -arch arm
+#$(_MODULE)_COPT += -arch arm
 endif
 
-ifeq ($(TARGET_ARCH),32)
 ifneq ($(TARGET_FAMILY),ARM)
-$(_MODULE)_COPT += -m32 -fno-stack-protector
-endif
+$(_MODULE)_COPT += -m$(TARGET_ARCH)
 endif
 
 $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
@@ -158,7 +156,7 @@ $(ODIR)/%.xml: $(SDIR)/%.c $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 	$(Q)$(CC) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 	
 $(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
-	@echo [CLANG] Analyzing C++ $$(notdir $$<)
+	@echo [CLANG++] Analyzing C++ $$(notdir $$<)
 	$(Q)$(CP) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 endef
 
@@ -168,8 +166,8 @@ $(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
-	@echo [CLANG] Compiling C++ $$(notdir $$<)
-	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	@echo [CLANG++] Compiling C++ $$(notdir $$<)
+	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Assembling $$(notdir $$<)
