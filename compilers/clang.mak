@@ -78,7 +78,7 @@ $(_MODULE)_LOPT := $(LDFLAGS)
 ifneq ($(TARGET_OS),CYGWIN)
 $(_MODULE)_COPT += -fPIC
 endif
-$(_MODULE)_COPT += -Weverything -Wno-deprecated -Wno-c++98-compat
+$(_MODULE)_COPT += -Weverything -Wno-deprecated -Wno-c++98-compat -fcolor-diagnostics
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3

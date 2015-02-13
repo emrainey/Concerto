@@ -73,14 +73,14 @@ DSO_EXT := .so
 endif
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
-	BIN_PRE=lib
-	BIN_EXT=.a
+BIN_PRE=lib
+BIN_EXT=.a
 else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-	BIN_PRE=lib
-	BIN_EXT=$(DSO_EXT)
+BIN_PRE=lib
+BIN_EXT=$(DSO_EXT)
 else
-	BIN_PRE=
-	BIN_EXT=
+BIN_PRE=
+BIN_EXT=
 endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
