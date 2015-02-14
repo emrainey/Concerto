@@ -43,36 +43,42 @@ LOGGING:=
 endif
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
-	BIN_PRE=lib
-	BIN_EXT=.a
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(LIB_EXT)
 else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-	BIN_PRE=lib
-	BIN_EXT=.so
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(DSO_EXT)
 else
-	BIN_PRE=
-	BIN_EXT=
+BIN_PRE:=
+BIN_EXT:=$(EXE_EXT)
 endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
+$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a) 
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT)) 
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT)) 
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)) 
 ifeq ($(BUILD_MULTI_PROJECT),1)
-$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
-$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
-$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
+$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 endif
 
 #$(_MODULE)_COPT := $(CFLAGS)
 #$(_MODULE)_LOPT := $(LDFLAGS)
 $(_MODULE)_COPT += -fms-extensions -fPIC -Wno-write-strings
+
 ifeq ($(TARGET_BUILD),debug)
-$(_MODULE)_COPT += -O0 -ggdb -ggdb3 -Q
+$(_MODULE)_COPT += -O0 -ggdb3 -Q
 $(_MODULE)_LOPT += -g
-else ifneq ($(filter $(TARGET_BUILD),release production),)
+else ifeq ($(TARGET_BUILD),release)
+$(_MODULE)_COPT += -O3 -ggdb3
+$(_MODULE)_LOPT += -g
+else ifeq ($(TARGET_BUILD),production)
 $(_MODULE)_COPT += -O3
+# Remove all symbols.
+$(_MODULE)_LOPT += -s
 endif
 
 ifeq ($(TARGET_CPU),ARM)
@@ -88,7 +94,11 @@ endif
 $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
 $(_MODULE)_INCLUDES := $(foreach inc,$($(_MODULE)_IDIRS),-I$(inc))
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-D$(def))
-$(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) $(foreach lib,$(STATIC_LIBS),-l$(lib)) $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) $(foreach lib,$(SHARED_LIBS),-l$(lib)) $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib))
+$(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
+                       $(foreach lib,$(STATIC_LIBS),-l$(lib)) \
+                       $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) \
+                       $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
+                       $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib))
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES) -meabi=5
 $(_MODULE)_LDFLAGS  := $($(_MODULE)_LOPT)
 $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf))
@@ -118,15 +128,15 @@ build:: $($(_MODULE)_BIN)
 endef
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)/%.o: $(SDIR)/%.c
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $(SDIR)/$(SUBMAKEFILE)
 	@echo [QCC] Compiling C99 $$(notdir $$<)
-	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $(SDIR)/$(SUBMAKEFILE)
 	@echo [QCC] Compiling C++ $$(notdir $$<)
-	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	$(Q)$(CP) $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [QCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef

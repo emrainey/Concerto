@@ -33,27 +33,29 @@ LOGGING=>$(LOGFILE)
 endif
 
 ifeq ($(strip $(TARGETTYPE)),library)
-	BIN_PRE=
-	BIN_EXT=.lib
+BIN_PRE=$(LIB_PRE)
+BIN_EXT=$(LIB_EXT)
 else ifeq ($(strip $(TARGETTYPE)),dsmo)
-	BIN_PRE=
-	BIN_EXT=.dll
+BIN_PRE=$(LIB_PRE)
+BIN_EXT=$(DSO_EXT)
 else ifeq ($(strip $(TARGETTYPE)),exe)
-	BIN_PRE=
-	BIN_EXT=.exe
+BIN_PRE=
+BIN_EXT=$(EXE_EXT)
 endif
 
 $(_MODULE)_SYS_SHARED_LIBS += user32
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.obj) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.obj) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.obj)
+$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
+                   $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
+                   $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(lib).lib) 
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(lib).dll) 
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT)) 
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)) 
 ifeq ($(BUILD_MULTI_PROJECT),1)
-$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(lib).lib)
-$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(lib).dll)
-$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/$(lib).dll)
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
+$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 endif
 $(_MODULE)_PDB  := $($(_MODULE)_ODIR)/$(TARGET).pdb
 
@@ -69,7 +71,12 @@ endif
 
 $(_MODULE)_INCLUDES := $(foreach inc,$(call PATH_CONV,$($(_MODULE)_IDIRS)),/I$(inc))
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),/D$(def))
-$(_MODULE)_LIBRARIES:= $(foreach ldir,$(call PATH_CONV,$($(_MODULE)_LDIRS)),/LIBPATH:$(ldir)) $(foreach lib,$(STATIC_LIBS),$(lib).lib) $(foreach lib,$(SHARED_LIBS),$(lib).lib) $(foreach lib,$(SYS_STATIC_LIBS),$(lib).lib) $(foreach lib,$(SYS_SHARED_LIBS),$(lib).lib) $(foreach lib,$(PLATFORM_LIBS),$(lib).lib)
+$(_MODULE)_LIBRARIES:= $(foreach ldir,$(call PATH_CONV,$($(_MODULE)_LDIRS)),/LIBPATH:$(ldir)) \
+					   $(foreach lib,$(STATIC_LIBS),$(lib)$(LIB_EXT)) \
+					   $(foreach lib,$(SHARED_LIBS),$(lib)$(LIB_EXT)) \
+					   $(foreach lib,$(SYS_STATIC_LIBS),$(lib)$(LIB_EXT)) \
+					   $(foreach lib,$(SYS_SHARED_LIBS),$(lib)$(LIB_EXT)) \
+					   $(foreach lib,$(PLATFORM_LIBS),$(lib)$(LIB_EXT))
 $(_MODULE)_ARFLAGS  := /nologo /MACHINE:$(TARGET_FAMILY)
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
 $(_MODULE)_LDFLAGS  := /nologo /MACHINE:$(TARGET_FAMILY)
@@ -109,15 +116,15 @@ build:: $($(_MODULE)_BIN)
 endef
 
 define $(_MODULE)_COMPILE_TOOLS
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.c
+$($(_MODULE)_ODIR)/%$(OBJ_EXT): $($(_MODULE)_SDIR)/%.c
 #	@echo [PURE] Compiling MSFT C $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.cpp
+$($(_MODULE)_ODIR)/%$(OBJ_EXT): $($(_MODULE)_SDIR)/%.cpp
 #	@echo [PURE] Compiling MSFT C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb) $(LOGGING)
 
-$($(_MODULE)_ODIR)/%.obj: $($(_MODULE)_SDIR)/%.S
+$($(_MODULE)_ODIR)/%$(OBJ_EXT): $($(_MODULE)_SDIR)/%.S
 #	@echo [PURE] Assembling NASM $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$(call PATH_CONV,$$<) /Fo$$(call PATH_CONV,$$@) /Fd$$(call PATH_CONV,$($(_MODULE)_ODIR)/$$(notdir $$(basename $$<)).pdb)  $(LOGGING)
 endef

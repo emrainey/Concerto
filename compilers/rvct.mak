@@ -34,31 +34,25 @@ else
 LOGGING:=
 endif
 
-ifeq ($(TARGET_OS),Windows_NT)
-DSO_EXT := .dll
-else
-DSO_EXT := .so
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
-	BIN_PRE=lib
-	BIN_EXT=.a
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(LIB_EXT)
 else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-	BIN_PRE=lib
-	BIN_EXT=$(DSO_EXT)
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(DSO_EXT)
 else
-	BIN_PRE=
-	BIN_EXT=
+BIN_PRE:=
+BIN_EXT:=$(EXE_EXT)
 endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
+$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
-$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
 $(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
 endif
@@ -98,11 +92,11 @@ $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
 $(_MODULE)_INCLUDES := $(foreach inc,$($(_MODULE)_IDIRS),-I$(inc))
 $(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-D$(def))
 $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L--userlibpath=$(ldir)) \
-                       $(foreach lib,$(STATIC_LIBS),-Llib$(lib).a) \
-                       $(foreach lib,$(SYS_STATIC_LIBS),-Llib$(lib).a) \
-                       $(foreach lib,$(SHARED_LIBS),-Llib$(lib)$(DSO_EXT)) \
-                       $(foreach lib,$(SYS_SHARED_LIBS),-Llib$(lib)$(DSO_EXT))\
-					   $(foreach lib,$(PLATFORM_LIBS),-Llib$(lib)$(DSO_EXT))
+                       $(foreach lib,$(STATIC_LIBS),-L$(LIB_PRE)$(lib)$(LIB_EXT)) \
+                       $(foreach lib,$(SYS_STATIC_LIBS),-L$(LIB_PRE)$(lib)$(LIB_EXT)) \
+                       $(foreach lib,$(SHARED_LIBS),-L$(LIB_PRE)$(lib)$(DSO_EXT)) \
+                       $(foreach lib,$(SYS_SHARED_LIBS),-L$(LIB_PRE)$(lib)$(DSO_EXT)) \
+                       $(foreach lib,$(PLATFORM_LIBS),-L$(LIB_PRE)$(lib)$(DSO_EXT))
 $(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
 $(_MODULE)_LDFLAGS  += $($(_MODULE)_LOPT)
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
@@ -131,15 +125,15 @@ $($(_MODULE)_CONFIG): $($(_MODULE)_TDIR)/.gitignore
 	@echo [RVCT] Building Configuration File $$(notdir $$<)
 	$(Q)$(CC) --arm_linux_configure --arm_linux_config_file=$($(_MODULE)_CONFIG) --configure_gcc=/usr/bin/$(CROSS_COMPILE)gcc
 
-$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_CONFIG)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $($(_MODULE)_CONFIG)
 	@echo [RVCT] Compiling C90 $$(notdir $$<)
 	$(Q)$(CC) --c90 $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_CONFIG)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $($(_MODULE)_CONFIG)
 	@echo [RVCT] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) --cpp $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.s $($(_MODULE)_CONFIG)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.s $($(_MODULE)_CONFIG)
 	@echo [RVCT] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$< -o $$@ $(LOGGING)
 endef

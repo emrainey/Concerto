@@ -48,28 +48,20 @@ else
 LOGGING:=
 endif
 
-ifeq ($(TARGET_OS),DARWIN)
-DSO_EXT := .dylib
-else ifeq ($(TARGET_OS),CYGWIN)
-DSO_EXT := .dll.a
-else
-DSO_EXT := .so
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
-	BIN_PRE=lib
-	BIN_EXT=.a
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(LIB_EXT)
 else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-	BIN_PRE=lib
-	BIN_EXT=$(DSO_EXT)
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(DSO_EXT)
 else
-	BIN_PRE=
-	BIN_EXT=
+BIN_PRE:=
+BIN_EXT:=$(EXE_EXT)
 endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
+$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a) 
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT)) 
@@ -87,12 +79,11 @@ endif
 $(_MODULE)_COPT += -Wall -fms-extensions -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
-$(_MODULE)_COPT += -O0 -ggdb -ggdb3 -gdwarf-2
-else ifneq ($(filter $(TARGET_BUILD),release production),)
+$(_MODULE)_COPT += -O0 -ggdb3 -gdwarf-2
+else ifeq ($(TARGET_BUILD),release)
+$(_MODULE)_COPT += -O3 -ggdb3
+else ifeq ($(TARGET_BUILD),production)
 $(_MODULE)_COPT += -O3
-endif
-
-ifeq ($(TARGET_BUILD),production)
 # Remove all symbols.
 $(_MODULE)_LOPT += -s
 endif
@@ -192,26 +183,26 @@ $(ODIR)/%.dep: $(SDIR)/%.cpp $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_INCLUDES) -M $$< > $$@
 
-$(ODIR)/%.o: $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cu $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cu $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling CU $$(notdir $$<)
 	$(Q)$(CC) $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C++ $$(notdir $$<)
 	$(Q)$(CP) $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) $$< -o $$@ $(LOGGING)
 endef
 
 ifneq ($(OLD_COMPILER),)
-	ifeq ($(SHOW_MAKEDEBUG),1)
-    	$(info HOST_COMPILER reset to '$(OLD_COMPILER)')
+    ifeq ($(SHOW_MAKEDEBUG),1)
+        $(info HOST_COMPILER reset to '$(OLD_COMPILER)')
     endif
     HOST_COMPILER:=$(strip $(OLD_COMPILER))
 endif 
