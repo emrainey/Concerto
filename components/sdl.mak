@@ -22,9 +22,16 @@ ifeq ($(USE_SDL),true)
 		endif
     else ifeq ($(HOST_OS),LINUX)
         ifneq ($(SDL_PKG),)
-            SDL_LIBS := $(subst -l,,$(shell pkg-config --libs-only-l $(SDL_PKG)))
-            SDL_INCS := $(subst -I,,$(shell pkg-config --cflags-only-I $(SDL_PKG)))
-            DEFS  += $(subst -D,,$(shell pkg-config --cflags-only-other $(SDL_PKG)))
+            ERR := $(shell pkg-config $(SDL_PKG);echo $?)
+            ifeq ($(ERR),0)
+	            SDL_LIBS := $(subst -l,,$(shell pkg-config --libs-only-l $(SDL_PKG)))
+	            SDL_INCS := $(subst -I,,$(shell pkg-config --cflags-only-I $(SDL_PKG)))
+	            DEFS  += $(subst -D,,$(shell pkg-config --cflags-only-other $(SDL_PKG)))
+            else
+                SDK_INCS := /usr/include/SDL
+                SDL_LIBS := SDL
+                DEFS := -D_GNU_SOURCE=1 -D_REENTRANT
+            endif
             IDIRS += $(SDL_INCS)
             DEFS += USE_SDL
             SYS_SHARED_LIBS += $(SDL_LIBS)
