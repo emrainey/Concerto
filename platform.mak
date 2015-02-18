@@ -13,14 +13,52 @@
 # limitations under the License.
 
 ifeq ($(TARGET_OS),LINUX)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.so
+    OBJ_EXT:=.o
     PLATFORM_LIBS := dl pthread rt
 else ifeq ($(TARGET_OS),DARWIN)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.dylib
+    OBJ_EXT:=.o
+    EXE_EXT:=
     PLATFORM_LIBS :=
 else ifeq ($(TARGET_OS),Windows_NT)
+    LIB_PRE:=
+    LIB_EXT:=.lib
+    DSO_EXT:=.dll
+    OBJ_EXT:=.obj
+    EXE_EXT:=.exe
     PLATFORM_LIBS := Ws2_32 user32 kernel32 Gdi32
 else ifeq ($(TARGET_OS),__QNX__)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.so
+    OBJ_EXT:=.o
+    EXE_EXT:=
     PLATFORM_LIBS := screen socket
 else ifeq ($(TARGET_OS),CYGWIN)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.dll.a
+    OBJ_EXT:=.o
+    EXE_EXT:=.exe
     PLATFORM_LIBS := c pthread
+else ifeq ($(TARGET_OS).SYSBIOS)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.a
+    OBJ_EXT:=.obj
+    EXE_EXT:=.out
+    PLATFORM_LIBS :=
+else ifeq ($(TARGET_OS),NO_OS)
+    LIB_PRE:=lib
+    LIB_EXT:=.a
+    DSO_EXT:=.a
+    OBJ_EXT:=.obj
+    EXE_EXT:=.out
+    PLATFORM_LIBS :=
 endif
 

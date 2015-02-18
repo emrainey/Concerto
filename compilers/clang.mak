@@ -38,35 +38,27 @@ else
 LOGGING:=
 endif
 
-ifeq ($(TARGET_OS),DARWIN)
-DSO_EXT := .dylib
-else ifeq ($(TARGET_OS),CYGWIN)
-DSO_EXT := .dll.a
-else
-DSO_EXT := .so
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
-	BIN_PRE=lib
-	BIN_EXT=.a
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(LIB_EXT)
 else ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
-	BIN_PRE=lib
-	BIN_EXT=$(DSO_EXT)
+BIN_PRE:=$(LIB_PRE)
+BIN_EXT:=$(DSO_EXT)
 else
-	BIN_PRE=
-	BIN_EXT=
+BIN_PRE:=
+BIN_EXT:=$(EXE_EXT)
 endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%.o) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%.o) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%.o)
+$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
-$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
-$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
-$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
+$(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 else
 $(_MODULE)_PLATFORM_LIBS := $(PLATFORM_LIBS)
 endif
@@ -82,10 +74,13 @@ $(_MODULE)_COPT += -Weverything -Wno-deprecated -Wno-c++98-compat -Wno-c++98-com
                    -fcolor-diagnostics -Wno-disabled-macro-expansion -Wno-padded
 
 ifeq ($(TARGET_BUILD),debug)
-$(_MODULE)_COPT += -O0 -ggdb3
-#$(_MODULE)_LOPT += -g
-else ifneq ($(filter $(TARGET_BUILD),release production),)
+$(_MODULE)_COPT += -O0 -ggdb3 -gdwarf-2
+else ifeq ($(TARGET_BUILD),release)
+$(_MODULE)_COPT += -O3 -ggdb3
+else ifeq ($(TARGET_BUILD),production)
 $(_MODULE)_COPT += -O3
+# Remove all symbols.
+$(_MODULE)_LOPT += -s
 endif
 
 # This doesn't appear to do anything with CLANG (shouldn't it?)
@@ -133,7 +128,7 @@ $(_MODULE)_LN_DSO     := $(LINK) $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MO
 $(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($(_MODULE)_VERSION) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT)
 $(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
 ifeq ($(TARGET_OS),DARWIN)
-$(_MODULE)_LINK_DSO   := $(LD) -dylib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
+$(_MODULE)_LINK_DSO   := $(LD) -dynamiclib $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
 $(_MODULE)_LINK_EXE   := $(LD) $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
 else
 $(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION)
@@ -162,15 +157,15 @@ $(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 endef
 
 define $(_MODULE)_COMPILE_TOOLS
-$(ODIR)/%.o: $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Compiling C99 $$(notdir $$<)
-	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
-	@echo [CLANG++] Compiling C++ $$(notdir $$<)
-	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*.o' $$< -o $$@ $(LOGGING)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+	@echo [CLANG++] Compiling C++11 $$(notdir $$<)
+	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
-$(ODIR)/%.o: $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.S $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Assembling $$(notdir $$<)
 	$(Q)$(AS) $($(_MODULE)_AFLAGS) -MD $(ODIR)/$$*.dep $$< -o $$@ $(LOGGING)
 endef
