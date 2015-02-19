@@ -13,14 +13,15 @@
 # limitations under the License.
 
 ifeq ($(USE_CUDA),true)
-	OLD_COMPILER := 
+    OLD_COMPILER := 
     ifeq ($(SHOW_MAKEDEBUG),1)
         $(info CUDA Enabled for $(_MODULE))
     endif
     CUDA_LIBS := cudart cublas cufft curand cusparse nppc
     ifeq ($(HOST_OS),Windows_NT)
         ifeq ($(CUDA_ROOT),)
-            $(error CUDA_ROOT must be defined to use CUDA)
+            $(info CUDA_ROOT must be defined to use CUDA)
+            SKIPBUILD := 1
         endif
         IDIRS += $(CUDA_ROOT)/include $(CUDA_ROOT)/inc
         LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
@@ -34,12 +35,13 @@ ifeq ($(USE_CUDA),true)
             ifneq ($(wildcard /usr/local/cuda/.*),)
                 CUDA_ROOT := /usr/local/cuda
             else
-                $(error CUDA_ROOT must be defined to use CUDA)
+                $(info CUDA_ROOT must be defined to use CUDA)
+                SKIPBUILD := 1
             endif
         endif
         ifneq ($(HAS_CUDA),)
-        	OLD_COMPILER := $(strip $(HOST_COMPILER))
-        	HOST_COMPILER := NVCC
+            OLD_COMPILER := $(strip $(HOST_COMPILER))
+            HOST_COMPILER := NVCC
         endif
         IDIRS += $(CUDA_ROOT)/include
         LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
