@@ -20,7 +20,7 @@ ifeq ($(TARGET_CPU),X86)
 	CROSS_COMPILE:=
 endif
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),ARM X86 x86_64),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
@@ -57,8 +57,8 @@ $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
 $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT)) 
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)) 
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
 $(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
@@ -72,6 +72,7 @@ $(_MODULE)_COPT += -fms-extensions -fPIC -Wno-write-strings
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3 -Q
 $(_MODULE)_LOPT += -g
+$(_MODULE)_AFLAGS += --gdwarf-2
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3 -ggdb3
 $(_MODULE)_LOPT += -g
@@ -102,14 +103,10 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
                        $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) \
                        $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
                        $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib))
-$(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES) -meabi=5
+$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES) -meabi=5
 $(_MODULE)_LDFLAGS  := $($(_MODULE)_LOPT)
 $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf))
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
-
-ifdef DEBUG
-$(_MODULE)_AFLAGS += --gdwarf-2
-endif
 
 ###################################################
 # COMMANDS

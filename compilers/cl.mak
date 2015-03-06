@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),X86 x86_64 X64),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
@@ -50,8 +50,8 @@ $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
                    $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
                    $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT)) 
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)) 
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
 $(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))

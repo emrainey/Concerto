@@ -20,7 +20,7 @@ ifndef TMS470_C_DIR
 $(error You must defined TMS470_C_DIR)
 endif
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),ARM),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
@@ -73,7 +73,7 @@ $(_MODULE)_OBJS := $(call PATH_CONV,$($(_MODULE)_OBJS))
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += --opt_level=0 -g
-else ifneq ($(filter $(TARGET_BUILD),release production),)
+else ifneq ($(filter $(TARGET_BUILD),release production profiling),)
 $(_MODULE)_COPT += --opt_level=3 --gen_opt_info=2
 endif
 
@@ -166,4 +166,3 @@ build:: $($(_MODULE)_BIN)
 endef
 
 endif
-

@@ -26,10 +26,10 @@ ifneq ($(HOST_FAMILY),$(TARGET_FAMILY))
 $(if $(CROSS_COMPILE),,$(error Cross Compiling is not enabled! TARGET_FAMILY != HOST_FAMILY))
 endif
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),ARM X86 x86_64),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
-endif 
+endif
 
 # check for the support OS types for this compiler
 ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN NO_OS Windows_NT),)
@@ -63,8 +63,8 @@ $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
 $(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a) 
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT)) 
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
 $(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib).a)
 $(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
@@ -80,6 +80,7 @@ $(_MODULE)_COPT += -Wall -fms-extensions -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3
+$(_MODULE)_AFLAGS += --gdwarf-2
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3 -ggdb3
 else ifeq ($(TARGET_BUILD),production)
@@ -138,10 +139,6 @@ $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf)) $($(_MOD
 $(_MODULE)_COMPILER_OPT := $($(_MODULE)_COPT) $(CFLAGS)
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) -Xcompiler=$(subst $(SPACE),$(COMMA),$($(_MODULE)_COMPILER_OPT))
 
-ifdef DEBUG
-$(_MODULE)_AFLAGS += --gdwarf-2
-endif
-
 ###################################################
 # COMMANDS
 ###################################################
@@ -155,7 +152,7 @@ endif
 
 $(_MODULE)_LN_DSO	 := $(LINK) $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_BIN)
 $(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($(_MODULE)_VERSION) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT)
-$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) 
+$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS)
 
 ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LINK_DSO   := $(LD) -shared $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
@@ -208,7 +205,6 @@ ifneq ($(OLD_COMPILER),)
         $(info HOST_COMPILER reset to '$(OLD_COMPILER)')
     endif
     HOST_COMPILER:=$(strip $(OLD_COMPILER))
-endif 
-
 endif
 
+endif

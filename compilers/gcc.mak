@@ -97,10 +97,11 @@ $(_MODULE)_COPT += -Wall -fms-extensions -Wno-write-strings
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -O0 -ggdb3 -gdwarf-2
+$(_MODULE)_AFLAGS += --gdwarf-2
 else ifeq ($(TARGET_BUILD),release)
-$(_MODULE)_COPT += -O3 -ggdb3
+$(_MODULE)_COPT += -O3 -ggdb3 -NDEBUG
 else ifeq ($(TARGET_BUILD),production)
-$(_MODULE)_COPT += -O3
+$(_MODULE)_COPT += -O3 -NDEBUG
 # Remove all symbols.
 $(_MODULE)_LOPT += -s
 else ifeq ($(TARGET_BUILD),profiling)
@@ -149,17 +150,13 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
 					   $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
 					   $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib)) \
 					   $(foreach lib,$(PLATFORM_LIBS),-l$(lib))
-$(_MODULE)_AFLAGS   := $($(_MODULE)_INCLUDES)
+$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES)
 ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU) $(LDFLAGS)
 endif
 $(_MODULE)_LDFLAGS  += $($(_MODULE)_LOPT)
 $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf)) $($(_MODULE)_COPT)
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)
-
-ifdef DEBUG
-$(_MODULE)_AFLAGS += --gdwarf-2
-endif
 
 ###################################################
 # COMMANDS

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),ARM),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
-endif 
+endif
 
 # check for the support OS types for this compiler
 ifeq ($(filter $(TARGET_OS),LINUX Windows_NT),)
@@ -67,7 +67,11 @@ $(_MODULE)_COPT += -g
 else ifeq ($(TARGET_BUILD),release)
 $(_MODULE)_COPT += -O3 -Otime
 $(_MODULE)_LOPT += --no_debug
+else ifeq ($(TARGET_BUILD),production)
+$(_MODULE)_COPT += -O3 -Otime
+$(_MODULE)_LOPT += --no_debug
 endif
+
 ifeq ($(TARGET_ENDIAN),LITTLE)
 $(_MODULE)_COPT += -mlittle-endian
 else

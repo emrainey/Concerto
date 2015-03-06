@@ -16,7 +16,7 @@ ifndef CGT6X_ROOT
 $(error You must define CGT6X_ROOT!)
 endif
 
-# check for the supported CPU types for this compiler 
+# check for the supported CPU types for this compiler
 ifeq ($(filter $(TARGET_FAMILY),DSP),)
 $(error TARGET_FAMILY $(TARGET_FAMILY) is not supported by this compiler)
 endif
@@ -69,7 +69,7 @@ $(_MODULE)_OBJS := $(call PATH_CONV,$($(_MODULE)_OBJS))
 
 ifeq ($(TARGET_BUILD),debug)
 $(_MODULE)_COPT += -g
-else ifneq ($(filter $(TARGET_BUILD),release production),)
+else ifneq ($(filter $(TARGET_BUILD),release production profiling),)
 $(_MODULE)_COPT += --opt_level=3 --gen_opt_info=2
 endif
 
@@ -106,7 +106,7 @@ endif
 ifeq ($(TARGET_OS),LINUX)
 $(_MODULE)_COPT += --linux --gcc
 $(_MODULE)_IDIRS += $(C6X_UCLINUX_ROOT)/libc/usr/include
-$(_MODULE)_DEFS += __GNUC_MINOR__=3 __extensions__ __nothrow__ \ 
+$(_MODULE)_DEFS += __GNUC_MINOR__=3 __extensions__ __nothrow__ \
 	__STDC__="unsigned int" __WINT_TYPE__="unsigned int" \
 	__WCHAR_TYPE__="unsigned int" __gnuc_va_list=va_list
 endif
@@ -153,4 +153,3 @@ $(call PATH_CONV,$(ODIR)$(PATH_SEP)%$(OBJ_EXT)): $(SDIR)/%.asm
 	$(Q)$$(call PATH_CONV,$(AS) $($(_MODULE)_AFLAGS) --preproc_dependency=$(ODIR)/$$*.dep --preproc_with_compile -fr=$$(dir $$@) -ft=$$(dir $$@) -eo=$(OBJ_EXT) -fa=$$< $(LOGGING))
 
 endef
-

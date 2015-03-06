@@ -47,12 +47,18 @@ endif
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info CLASSPATH=$($(_MODULE)_CLASSPATH))
 endif
+
 $(_MODULE)_CLASSPATH := $(subst $(SPACE),:,$($(_MODULE)_CLASSPATH))
 JC_OPTS              := -deprecation -classpath $($(_MODULE)_CLASSPATH) -sourcepath $(SDIR) -d $(ODIR)
+
 ifeq ($(TARGET_BUILD),debug)
 JC_OPTS              += -g -verbose
-else ifneq ($(filter $(TARGET_BUILD),release production),)
-# perform obfuscation?
+else ifeq ($(TARGET_BUILD),release)
+JC_OPTS              += -g:lines,vars
+else ifeq ($(TARGET_BUILD),production)
+JC_OPTS              += -g:none
+else ifeq ($(TARGET_BUILD),profiling)
+JC_OPTS              += -g
 endif
 
 $(_MODULE)_JAR_OPTS  := cvf
@@ -111,10 +117,9 @@ $(ODIR)/$(pkg)%.class: $(SDIR)/$(pkg)%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_MANIFEST) $(SDIR)/$(SUBMAKEFILE) $(TDIR)/.gitignore
 	$(PRINT) Jar-ing all package classes in $$(notdir $$@)
-	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) -C $($(_MODULE)_ODIR) . 
+	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) -C $($(_MODULE)_ODIR) .
 	$(Q)$(JAR) -i $$@
 
 endef
 
 endif
-
