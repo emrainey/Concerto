@@ -112,13 +112,13 @@ define $(_MODULE)_COMPILE_TOOLS
 $(foreach pkg,$($(_MODULE)_PKGS),
 $(ODIR)/$(pkg)%.class: $(SDIR)/$(pkg)%.java $(SDIR)/$(SUBMAKEFILE) $($(_MODULE)_JAVA_DEPS) $(ODIR)/.gitignore
 	$(PRINT) Compiling Java $$(notdir $$<)
-	$(Q)$(JAVAC) $(JC_OPTS) $$<
+	$(Q)$(JAVAC) $(JC_OPTS) $$< $(LOGGING)
 )
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_MANIFEST) $(SDIR)/$(SUBMAKEFILE) $(TDIR)/.gitignore
 	$(PRINT) Jar-ing all package classes in $$(notdir $$@)
 	$(Q)$(JAR) $($(_MODULE)_JAR_OPTS) $($(_MODULE)_BIN) $($(_MODULE)_MANIFEST) -C $($(_MODULE)_ODIR) .
-	$(Q)$(JAR) -i $$@
+	$(Q)$(JAR) -i $$@ $(LOGGING)
 
 endef
 

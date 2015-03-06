@@ -36,12 +36,6 @@ AS=$(CGT6X_ROOT)/bin/cl6x
 AR=$(CGT6X_ROOT)/bin/ar6x
 LD=$(CGT6X_ROOT)/bin/cl6x
 
-ifdef LOGFILE
-LOGGING:=&>$(LOGFILE)
-else
-LOGGING:=
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 BIN_PRE=$(LIB_PRE)
 BIN_EXT=$(LIB_EXT)

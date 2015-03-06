@@ -36,12 +36,6 @@ AS=$(TMS470_ROOT)/bin/cl470
 AR=$(TMS470_ROOT)/bin/ar470
 LD=$(TMS470_ROOT)/bin/cl470
 
-ifdef LOGFILE
-LOGGING:=&>$(LOGFILE)
-else
-LOGGING:=
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 BIN_PRE=$(LIB_PRE)
 BIN_EXT=$(LIB_EXT)

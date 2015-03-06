@@ -25,6 +25,7 @@ INSTALL  := copy /Y /Z /V
 MKDIR    := mkdir
 CAT      := type
 QUIET 	 := 2>NUL
+REDIR    := 2>&1 >
 else # Bash variants
 CLEAN    := rm -f
 CLEANDIR := rm -rf
@@ -38,5 +39,5 @@ INSTALL  := install -C -m 755
 MKDIR    := mkdir -p
 CAT      := cat
 QUIET    := > /dev/null
+REDIR    := 2>&1 |tee -a$(SPACE)
 endif
-

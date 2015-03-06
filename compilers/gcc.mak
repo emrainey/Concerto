@@ -58,12 +58,6 @@ AR = $(CROSS_COMPILE)ar
 LD = $(CROSS_COMPILE)g++
 endif
 
-ifdef LOGFILE
-LOGGING:=&>$(LOGFILE)
-else
-LOGGING:=
-endif
-
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 BIN_PRE:=$(LIB_PRE)
 BIN_EXT:=$(LIB_EXT)

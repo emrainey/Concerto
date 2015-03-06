@@ -35,7 +35,7 @@ endif
 define $(_MODULE)_COMPILE_TOOLS
 $($(_MODULE)_SDIR)/kernel_%.h: $($(_MODULE)_SDIR)/kernel_%.cl $(CL)
 	@echo [PURE] Compiling OpenCL Kernel $$(notdir $$<)
-	$(Q)$$(call PATH_CONV,$(CL)) -n -f $$(call PATH_CONV,$$<) -d $(CL_USER_DEVICE_COUNT) -t $(CL_USER_DEVICE_TYPE) -h $$(call PATH_CONV,$$@) -W "$($(_MODULE)_KFLAGS)"
+	$(Q)$$(call PATH_CONV,$(CL)) -n -f $$(call PATH_CONV,$$<) -d $(CL_USER_DEVICE_COUNT) -t $(CL_USER_DEVICE_TYPE) -h $$(call PATH_CONV,$$@) -W "$($(_MODULE)_KFLAGS)" $(LOGGING)
 endef
 
 else
@@ -45,4 +45,3 @@ $($(_MODULE)_SDIR)/kernel_%.h:
 	$(Q)$$(call $(TOUCH),$$@)
 endef
 endif
-

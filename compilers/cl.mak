@@ -28,10 +28,6 @@ AS = $(TARGET_CPU)ASM
 AR = LIB
 LD = LINK
 
-ifdef LOGFILE
-LOGGING=>$(LOGFILE)
-endif
-
 ifeq ($(strip $(TARGETTYPE)),library)
 BIN_PRE=$(LIB_PRE)
 BIN_EXT=$(LIB_EXT)

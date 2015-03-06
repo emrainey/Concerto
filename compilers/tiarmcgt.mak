@@ -36,12 +36,6 @@ AS=$(TIARMCGT_ROOT)/bin/armasm
 AR=$(TIARMCGT_ROOT)/bin/armar
 LD=$(TIARMCGT_ROOT)/bin/armcl
 
-ifdef LOGFILE
-LOGGING:=&>$(LOGFILE)
-else
-LOGGING:=
-endif
-
 # if an object is encountered as dsmo, make it a library.
 ifeq ($(strip $($(_MODULE)_TYPE)),dsmo)
 $(_MODULE)_TYPE := library

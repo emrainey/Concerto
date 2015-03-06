@@ -76,7 +76,7 @@ $(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
 ifneq ($(SKIPBUILD),1)
 
 NEEDS_COMPILER:=
-NEEDS_INSTALL := 
+NEEDS_INSTALL :=
 ifeq ($($(_MODULE)_TYPE),library)
 	NEEDS_COMPILER=1
 	# no install for libs
@@ -93,19 +93,26 @@ else ifeq ($($(_MODULE)_TYPE),opencl_kernel)
 else ifeq ($($(_MODULE)_TYPE),deb)
 	include $(CONCERTO_ROOT)/tools/dpkg.mak
 else ifeq ($($(_MODULE)_TYPE),tar)
-	include $(CONCERTO_ROOT)/tools/tar.mak 
+	include $(CONCERTO_ROOT)/tools/tar.mak
 else ifeq ($($(_MODULE)_TYPE),doxygen)
 	include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
-# \todo add new build types here!    
+# \todo add new build types here!
 endif
 
 ifeq ($(NEEDS_COMPILER),1)
 # which compiler does this need?
 ifeq ($(SHOW_MAKEDEBUG),1)
     $(info Using HOST_COMPILER = '$(HOST_COMPILER)' for $(_MODULE))
-endif	
+endif
+
+ifdef LOGFILE
+LOGGING:= $(REDIR)$(LOGFILE)
+else
+LOGGING:=
+endif
+
 ifeq ($(HOST_COMPILER),GCC)
     include $(CONCERTO_ROOT)/compilers/gcc.mak
 else ifeq ($(HOST_COMPILER),CLANG)
@@ -134,9 +141,9 @@ endif
 ifeq ($(NEEDS_INSTALL),1)
 ifeq ($(TARGET_OS),Windows_NT)
     include $(CONCERTO_ROOT)/os/windows.mak
-else 
+else
     include $(CONCERTO_ROOT)/os/posix.mak
-endif    
+endif
 endif
 
 else # SKIPBUILD=1
@@ -154,7 +161,7 @@ SKIPBUILD:=
 
 .PHONY: $(_MODULE)_output
 define $(_MODULE)_output_list
-$(_MODULE)_output:: 
+$(_MODULE)_output::
 	@echo $(1)
 endef
 
@@ -340,4 +347,3 @@ endif
 
 # Now clear out the module variable for repeat definitions
 _MODULE :=
-
