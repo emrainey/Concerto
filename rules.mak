@@ -64,6 +64,10 @@ else
 Q:=@
 endif
 
+include $(CONCERTO_ROOT)/os.mak
+include $(CONCERTO_ROOT)/machine.mak
+include $(CONCERTO_ROOT)/shell.mak
+include $(CONCERTO_ROOT)/scm.mak
 
 # Optionally include any environment variables from local directory where the Makefile is called from
 HOST_ENVIRONMENT ?= $(HOST_ROOT)/environment.mak
@@ -71,11 +75,6 @@ ifneq ($(wildcard $(HOST_ENVIRONMENT)),)
 $(info Using $(HOST_ENVIRONMENT) for environment variables.)
 -include $(HOST_ENVIRONMENT)
 endif
-
-include $(CONCERTO_ROOT)/os.mak
-include $(CONCERTO_ROOT)/machine.mak
-include $(CONCERTO_ROOT)/shell.mak
-include $(CONCERTO_ROOT)/scm.mak
 
 # Check for COMBOS, if none existed make a single COMBO
 TARGET_COMBOS ?= $(HOST_PLATFORM):$(HOST_OS):$(HOST_CPU):0:$(TARGET_BUILD):$(HOST_COMPILER)
@@ -205,7 +204,7 @@ help:
 	$(PRINT) "BUILD_TARGET - the location and name of the target specializing makefile. Defaults to 'CONCERTO_ROOT'/target.mak"
 	$(PRINT) "BUILD_OUTPUT - the location to place the outputs of the build system. Defaults to 'out'"
 	$(PRINT) "BUILD_PLATFORM - the location and name of the platform specializing makefile. Defaults to 'CONCERTO_ROOT'/platform.mak"
-	$(PRINT) "TARGET_BUILD - Either 'release' (default) or 'debug'."
+	$(PRINT) "TARGET_BUILD - Either 'release' (default), 'debug', 'production' or 'profiling'."
 	$(PRINT) 
 
 -include $(CONCERTO_ROOT)/project.mak

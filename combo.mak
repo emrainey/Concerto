@@ -79,6 +79,8 @@ else ifeq ($(TARGET_BUILD),release)
 $(TARGET_COMBO_NAME)_DEFS += TARGET_BUILD=1
 else ifeq ($(TARGET_BUILD),debug)
 $(TARGET_COMBO_NAME)_DEFS += TARGET_BUILD=2
+else ifeq ($(TARGET_BUILD),profiling)
+$(TARGET_COMBO_NAME)_DEFS += TARGET_BUILD=3
 endif
 
 # Include platform definition

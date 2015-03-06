@@ -81,6 +81,9 @@ else ifeq ($(TARGET_BUILD),production)
 $(_MODULE)_COPT += -O3
 # Remove all symbols.
 $(_MODULE)_LOPT += -s
+else ifeq ($(TARGET_BUILD),profiling)
+$(_MODULE)_COPT += -pg -O1
+#$(_MODULE)_LOPT += -pg
 endif
 
 # This doesn't appear to do anything with CLANG (shouldn't it?)
