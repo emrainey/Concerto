@@ -16,20 +16,16 @@ ifeq ($(USE_OPENCV),true)
     ifeq ($(SHOW_MAKEDEBUG),1)
         $(info OpenCV Enabled for $(_MODULE))
     endif
-    
+
     ifeq ($(HOST_OS),LINUX)
-        ifeq ($(TARGET_PLATFORM),PC)
-            IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
-            #LDIRS += $(subst -L,$(EMPTY),$(shell pkg-config --libs-only-L opencv))
-            #SYS_SHARED_LIBS += $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-l opencv))
-            #SYS_SHARED_LIBS += $(subst /usr/local/lib,$(EMPTY),$(shell pkg-config --libs-only-other opencv))
-            SYS_SHARED_LIBS += $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs opencv)))))
-            DEFS += USE_OPENCV
-        else ifeq ($(TARGET_PLATFORM),DEVBOARD)
-            IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
-            #LDIRS += $(subst -L,$(EMPTY),$(shell pkg-config --libs-only-L opencv))
-            SYS_SHARED_LIBS += $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs opencv)))))
-            DEFS += USE_OPENCV
-        endif
+        IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
+        OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other opencv)))))
+        # Remove opencv_ts as it has a PIC linking issue
+        REMOVE_LIST := opencv_ts
+        SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS))
+        DEFS += USE_OPENCV
+    else ifeq ($(TARGET_OS),DARWIN)
+        SYS_SHARED_LIBS += opencv_core opencv_highgui opencv_video opencv_features2d
+        DEFS += USE_OPENCV
     endif
 endif

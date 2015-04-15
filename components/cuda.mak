@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+CUDA_LIBS := cudart cublas cufft curand cusparse nppc npps nppi
+
 ifeq ($(USE_CUDA),true)
-    OLD_COMPILER := 
+    OLD_COMPILER :=
     ifeq ($(SHOW_MAKEDEBUG),1)
         $(info CUDA Enabled for $(_MODULE))
     endif
-    CUDA_LIBS := cudart cublas cufft curand cusparse nppc
     ifeq ($(HOST_OS),Windows_NT)
         ifeq ($(CUDA_ROOT),)
             $(info CUDA_ROOT must be defined to use CUDA)

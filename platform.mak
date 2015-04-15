@@ -17,14 +17,14 @@ ifeq ($(TARGET_OS),LINUX)
     LIB_EXT:=.a
     DSO_EXT:=.so
     OBJ_EXT:=.o
-    PLATFORM_LIBS := dl pthread rt
+    PLATFORM_LIBS := dl pthread rt m
 else ifeq ($(TARGET_OS),DARWIN)
     LIB_PRE:=lib
     LIB_EXT:=.a
     DSO_EXT:=.dylib
     OBJ_EXT:=.o
     EXE_EXT:=
-    PLATFORM_LIBS :=
+    PLATFORM_LIBS := m
 else ifeq ($(TARGET_OS),Windows_NT)
     LIB_PRE:=
     LIB_EXT:=.lib
@@ -61,4 +61,3 @@ else ifeq ($(TARGET_OS),NO_OS)
     EXE_EXT:=.out
     PLATFORM_LIBS :=
 endif
-
