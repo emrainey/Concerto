@@ -81,6 +81,7 @@ $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
+$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)
 $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_PKG_LIB)/.gitignore
 	$(Q)cp $$< $$@
 )
