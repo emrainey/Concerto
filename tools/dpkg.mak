@@ -35,6 +35,10 @@ ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_FLDR=$($(_MODULE)_PKG_FLDR))
 endif
 
+ifneq ($(filter-out 0 1,$(words $(INC_SUBPATH))),)
+$(error INC_SUBPATH ($(INC_SUBPATH)) should have only 1 entry)
+endif
+
 # Remember that the INSTALL variable tend to be based in /
 $(_MODULE)_PKG_LIB := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_LIB)
 $(_MODULE)_PKG_INC := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_INC)/$($(_MODULE)_INC_SUBPATH)
@@ -48,10 +52,11 @@ $(info $(_MODULE)_PKG_BIN=$($(_MODULE)_PKG_BIN))
 $(info $(_MODULE)_PKG_CFG=$($(_MODULE)_PKG_CFG))
 endif
 
-$(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/lib$(lib).so) \
-                      $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_PKG_LIB)/lib$(lib).a) \
-                      $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)) \
-                      $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc)))
+$(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT)) \
+                         $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0) \
+                         $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT)) \
+                         $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT)) \
+                         $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc)))
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_DEPS=$($(_MODULE)_PKG_DEPS))
@@ -66,17 +71,22 @@ endif
 define $(_MODULE)_PACKAGE
 
 $(foreach lib,$($(_MODULE)_STATIC_LIBS),
-$($(_MODULE)_PKG_LIB)/lib$(lib).a: $($(_MODULE)_TDIR)/lib$(lib).a $($(_MODULE)_PKG_LIB)/.gitignore
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT) $($(_MODULE)_PKG_LIB)/.gitignore
 	$(Q)cp $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
-$($(_MODULE)_PKG_LIB)/lib$(lib).so: $($(_MODULE)_TDIR)/lib$(lib).so $($(_MODULE)_PKG_LIB)/.gitignore
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT) $($(_MODULE)_PKG_LIB)/.gitignore
+	$(Q)cp $$< $$@
+)
+
+$(foreach lib,$($(_MODULE)_SHARED_LIBS),
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_PKG_LIB)/.gitignore
 	$(Q)cp $$< $$@
 )
 
 $(foreach bin,$($(_MODULE)_BINS),
-$($(_MODULE)_PKG_BIN)/$(bin): $($(_MODULE)_TDIR)/$(bin) $($(_MODULE)_PKG_BIN)/.gitignore
+$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT): $($(_MODULE)_TDIR)/$(bin)$(EXE_EXT) $($(_MODULE)_PKG_BIN)/.gitignore
 	$(Q)cp $$< $$@
 )
 
@@ -93,6 +103,10 @@ $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $
 build:: $($(_MODULE)_BIN)
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
+	$(Q)$(CLEAN) $($(_MODULE)_PKG_LIB)/.gitignore
+	$(Q)$(CLEAN) $($(_MODULE)_PKG_BIN)/.gitignore
+	$(Q)$(CLEAN) $($(_MODULE)_PKG_INC)/.gitignore
+	$(Q)$(CLEAN) $($(_MODULE)_PKG_CFG)/.gitignore
 	$(Q)dpkg --build $$(basename $$@)
 endef
 
