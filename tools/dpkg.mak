@@ -30,6 +30,8 @@ $(_MODULE)_PKG_NAME    := $(subst _,-,$($(_MODULE)_TARGET))
 $(_MODULE)_PKG_FLDR    := $($(_MODULE)_TDIR)/$($(_MODULE)_PKG_NAME)
 $(_MODULE)_PKG         := $($(_MODULE)_PKG_NAME)$(PKG_EXT)
 $(_MODULE)_BIN         := $($(_MODULE)_TDIR)/$($(_MODULE)_PKG)
+$(_MODULE)_FILE_PATH   := $(FILE_PATH)
+$(_MODULE)_FILES       := $(FILES)
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_FLDR=$($(_MODULE)_PKG_FLDR))
@@ -44,22 +46,29 @@ $(_MODULE)_PKG_LIB := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_LIB)
 $(_MODULE)_PKG_INC := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_INC)/$($(_MODULE)_INC_SUBPATH)
 $(_MODULE)_PKG_BIN := $($(_MODULE)_PKG_FLDR)$($(_MODULE)_INSTALL_BIN)
 $(_MODULE)_PKG_CFG := $($(_MODULE)_PKG_FLDR)/DEBIAN
+$(_MODULE)_PKG_FILE := $($(_MODULE)_PKG_FLDR)/$($(_MODULE)_FILE_PATH)
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_LIB=$($(_MODULE)_PKG_LIB))
 $(info $(_MODULE)_PKG_INC=$($(_MODULE)_PKG_INC))
 $(info $(_MODULE)_PKG_BIN=$($(_MODULE)_PKG_BIN))
 $(info $(_MODULE)_PKG_CFG=$($(_MODULE)_PKG_CFG))
+$(info $(_MODULE)_PKG_FILE=$($(_MODULE)_PKG_FILE))
 endif
 
 $(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT)) \
                          $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0) \
                          $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT)) \
                          $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT)) \
-                         $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc)))
+                         $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc))) \
+                         $(foreach file,$($(_MODULE)_FILES),$($(_MODULE)_PKG_FILE)/$(notdir $(file)))
+
+# Remove empty folders from list
+$(_MODULE)_PKG_DEPS:=$(foreach dep,$($(_MODULE)_PKG_DEPS),$(if $(notdir $(dep)),$(dep),))
 
 ifeq ($(SHOW_MAKEDEBUG),1)
-$(info $(_MODULE)_PKG_DEPS=$($(_MODULE)_PKG_DEPS))
+$(info Dependencies for $(_MODULE))
+$(foreach dep,$($(_MODULE)_PKG_DEPS),$(info $(SPACE)$(SPACE)$(SPACE)$(SPACE)$(dep)))
 endif
 
 $(_MODULE)_OBJS := $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS)
@@ -70,30 +79,35 @@ endif
 
 define $(_MODULE)_PACKAGE
 
+$(foreach file,$($(_MODULE)_FILES),
+$($(_MODULE)_PKG_FILE)/$(notdir $(file)): $(HOST_ROOT)/$($(_MODULE)_FILE_PATH)/$(notdir $(file)) $($(_MODULE)_PKG_FILE)/.gitignore
+	$(Q)$(COPY) $$< $$@
+)
+
 $(foreach lib,$($(_MODULE)_STATIC_LIBS),
 $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT) $($(_MODULE)_PKG_LIB)/.gitignore
-	$(Q)cp $$< $$@
+	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
 $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT) $($(_MODULE)_PKG_LIB)/.gitignore
-	$(Q)cp $$< $$@
+	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
 $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)
 $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_PKG_LIB)/.gitignore
-	$(Q)cp $$< $$@
+	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach bin,$($(_MODULE)_BINS),
 $($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT): $($(_MODULE)_TDIR)/$(bin)$(EXE_EXT) $($(_MODULE)_PKG_BIN)/.gitignore
-	$(Q)cp $$< $$@
+	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach inc,$($(_MODULE)_INCS),
 $($(_MODULE)_PKG_INC)/$(notdir $(inc)): $(inc) $($(_MODULE)_PKG_INC)/.gitignore
-	$(Q)cp $$< $$@
+	$(Q)$(COPY) $$< $$@
 )
 
 $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_CFG)/.gitignore
@@ -104,10 +118,6 @@ $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $
 build:: $($(_MODULE)_BIN)
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
-	$(Q)$(CLEAN) $($(_MODULE)_PKG_LIB)/.gitignore
-	$(Q)$(CLEAN) $($(_MODULE)_PKG_BIN)/.gitignore
-	$(Q)$(CLEAN) $($(_MODULE)_PKG_INC)/.gitignore
-	$(Q)$(CLEAN) $($(_MODULE)_PKG_CFG)/.gitignore
 	$(Q)dpkg --build $$(basename $$@)
 endef
 
