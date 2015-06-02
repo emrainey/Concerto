@@ -72,7 +72,7 @@ $(_MODULE)_MANIFEST  := $(ODIR)/Manifest.mf
 $(_MODULE)_JAR_OPTS  += m
 
 define $(_MODULE)_MANIFEST_PRODUCER
-$($(_MODULE)_MANIFEST): $($(_MODULE)_JAVA_DEPS) $(SDIR)/$(SUBMAKEFILE)
+$($(_MODULE)_MANIFEST): $($(_MODULE)_JAVA_DEPS) $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	$(PRINT) "Manifest-Version: 1.0" > $$@
 ifneq ($($(_MODULE)_JAVA_LIBS),$(EMPTY))
 	$(PRINT) "Class-Path: $(addsuffix .jar,$($(_MODULE)_JAVA_LIBS))" >> $$@
