@@ -112,7 +112,7 @@ endif
 ifeq ($(TARGET_OS),LINUX)
 $(_MODULE)_CFLAGS += --target-os-variant=Linux
 endif
-$(_MODULE)_CFLAGS += $(if $($(_MODULE)_COMPILER_OPT),-Xcompiler=$(subst $(SPACE),$(COMMA),$($(_MODULE)_COMPILER_OPT)))
+$(_MODULE)_CFLAGS += $(if $($(_MODULE)_COMPILER_OPT),-Xcompiler=$(subst $(SPACE),$(COMMA),$($(_MODULE)_COMPILER_OPT))) $(CUFLAGS)
 
 ###################################################
 # COMMANDS
@@ -156,7 +156,7 @@ $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)
 
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cu $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling CU $$(notdir $$<)
-	$(Q)$(NVCC) -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
+	$(Q)$(NVCC) --std=c++11 -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C++ $$(notdir $$<)

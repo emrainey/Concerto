@@ -94,6 +94,15 @@ MAKE_OUT = $(1)/$(BUILD_OUTPUT)/$(TARGET_PLATFORM)/$(TARGET_CPU)/$(TARGET_OS)/$(
 FILTER_COMBO = $(foreach combo,$(TARGET_COMBOS),$(if $(filter $(1),$(subst :, ,$(combo))),$(combo)))
 FILTER_OUT_COMBO = $(foreach combo,$(TARGET_COMBOS),$(if $(filter $(1),$(subst :, ,$(combo))), ,$(combo))) 
 
+# If CFLAGS or LDFLAGS is set by the system, preserve it for now 
+# TODO add SYSCFLAGS and SYSLDFLAGS to all compiler files.
+ifneq ($(CFLAGS),)
+SYSCFLAGS := $(CFLAGS)
+endif
+ifneq ($(LDFLAGS),)
+SYSLDFLAGS := $(LDFLAGS)
+endif
+
 # Macro to include the combo rules
 define CONCERTO_BUILD
 include $(CONCERTO_ROOT)/combo.mak
