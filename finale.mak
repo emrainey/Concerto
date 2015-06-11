@@ -70,8 +70,8 @@ $(_MODULE)_VERSION := $(VERSION)
 # Set the Install Path
 $(_MODULE)_INSTALL_PATH = $(INSTALL_PATH)
 
-# For debugging the build system
-$(_MODULE)_SRCS := $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES)
+# Create a big list of all sources files
+$(_MODULE)_SRCS := $(strip $(CSOURCES) $(CPPSOURCES) $(ASSEMBLY) $(JSOURCES) $(CUSOURCES) $(SOURCES))
 
 ifneq ($(SKIPBUILD),1)
 

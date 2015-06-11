@@ -42,6 +42,7 @@ $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
+EXTS := .c .cc .cpp .cxx .C .CC .CPP .CXX .gpu .GPU .ptx .PTX .cu .CU 
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 BIN_PRE:=$(LIB_PRE)
@@ -56,10 +57,8 @@ endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.ptx=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
-	$(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
-	$(CUSOURCES:%.cu=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) \
-	$(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
+# for each extension types, convert the source file to an object file, remove duplicates and then remove anything that isn't an object
+$(_MODULE)_OBJS := $(filter %$(OBJ_EXT), $(sort $(foreach ext,$(EXTS),$($(_MODULE)_SRCS:%$(ext)=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) )))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/lib$(lib)$(DSO_EXT))
@@ -150,6 +149,10 @@ $(ODIR)/%.dep: $(SDIR)/%.cpp $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
 
+$(ODIR)/%.dep: $(SDIR)/%.cc $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
+	@echo [NVCC] Dependencies for $$(notdir $$<)
+	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
+
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C99 $$(notdir $$<)
 	$(Q)$(NVCC) --std=c99 -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
@@ -159,6 +162,10 @@ $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cu $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR
 	$(Q)$(NVCC) --std=c++11 -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+	@echo [NVCC] Compiling C++ $$(notdir $$<)
+	$(Q)$(NVCC) --std=c++11 -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
+
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cc $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C++ $$(notdir $$<)
 	$(Q)$(NVCC) --std=c++11 -dc $($(_MODULE)_CFLAGS) $$< -o $$@ $(LOGGING)
 

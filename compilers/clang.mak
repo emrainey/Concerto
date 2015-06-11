@@ -31,6 +31,7 @@ CP = $(CROSS_COMPILE)clang++
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
 LD = $(CROSS_COMPILE)clang++
+EXTS := .c .cc .cpp .cxx .C .CC .CPP .CXX .S .s .asm .ASM
 
 ifeq ($(strip $($(_MODULE)_TYPE)),library)
 BIN_PRE:=$(LIB_PRE)
@@ -45,7 +46,8 @@ endif
 
 $(_MODULE)_OUT  := $(BIN_PRE)$($(_MODULE)_TARGET)$(BIN_EXT)
 $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
-$(_MODULE)_OBJS := $(ASSEMBLY:%.S=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CPPSOURCES:%.cpp=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) $(CSOURCES:%.c=$($(_MODULE)_ODIR)/%$(OBJ_EXT))
+# for each extension types, convert the source file to an object file, remove duplicates and then remove anything that isn't an object
+$(_MODULE)_OBJS := $(filter %$(OBJ_EXT), $(sort $(foreach ext,$(EXTS),$($(_MODULE)_SRCS:%$(ext)=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) )))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
 $(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
 $(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
@@ -138,11 +140,15 @@ endef
 
 define $(_MODULE)_ANALYZER
 
-analysis::$(CPPSOURCES:%.cpp=$(ODIR)/%.xml) $(CSOURCES:%.c=$(ODIR)/%.xml)
+analysis::$(filter %.xml,$(sort $(foreach ext,$(EXTS),$($(_MODULE)_SRCS:%$(ext)=$(ODIR)/%.xml))))
 
 $(ODIR)/%.xml: $(SDIR)/%.c $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG] Analyzing C $$(notdir $$<)
 	$(Q)$(CC) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
+
+$(ODIR)/%.xml: $(SDIR)/%.cc $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
+	@echo [CLANG++] Analyzing C++ $$(notdir $$<)
+	$(Q)$(CP) --analyze $($(_MODULE)_CFLAGS) $$< -o $$@
 
 $(ODIR)/%.xml: $(SDIR)/%.cpp $(ODIR)/.gitignore $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG++] Analyzing C++ $$(notdir $$<)
@@ -155,6 +161,10 @@ $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE
 	$(Q)$(CC) -std=c99 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cpp $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
+	@echo [CLANG++] Compiling C++11 $$(notdir $$<)
+	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
+
+$(ODIR)/%$(OBJ_EXT): $(SDIR)/%.cc $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [CLANG++] Compiling C++11 $$(notdir $$<)
 	$(Q)$(CP) -std=c++11 $($(_MODULE)_CFLAGS) -MMD -MF $(ODIR)/$$*.dep -MT '$(ODIR)/$$*$(OBJ_EXT)' $$< -o $$@ $(LOGGING)
 
