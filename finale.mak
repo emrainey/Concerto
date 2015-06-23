@@ -124,6 +124,8 @@ else ifeq ($(HOST_COMPILER),RVCT)
 	include $(CONCERTO_ROOT)/compilers/rvct.mak
 else ifeq ($(HOST_COMPILER),CGT6X)
 	include $(CONCERTO_ROOT)/compilers/cgt6x.mak
+else ifeq ($(HOST_COMPILER),CGTPRU)
+	include $(CONCERTO_ROOT)/compilers/cgtpru.mak
 else ifeq ($(HOST_COMPILER),QCC)
 	include $(CONCERTO_ROOT)/compilers/qcc.mak
 else ifeq ($(HOST_COMPILER),TMS470)
@@ -134,7 +136,7 @@ else ifeq ($(HOST_COMPILER),NVCC)
     include $(CONCERTO_ROOT)/compilers/nvcc.mak
 else ifeq ($(HOST_COMPILER),)
 $(error HOST_COMPILER $(origin HOST_COMPILER))
-else ifeq ($(filter $(HOST_COMPILER),GCC CLANG CL RVCT CGT6X QCC TMS470 TIARMCGT NVCC),)
+else ifeq ($(filter $(HOST_COMPILER),GCC CLANG CL RVCT CGT6X CGTPRU QCC TMS470 TIARMCGT NVCC),)
 $(error HOST_COMPILER => $(HOST_COMPILER) is unknown)
 endif
 endif
