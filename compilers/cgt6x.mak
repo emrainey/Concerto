@@ -27,7 +27,7 @@ $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 
 ifeq ($(TARGET_OS),LINUX)
-$(if $(C6X_UCLINUX_ROOT),,$(error C6X_UCLINUX_ROOT must be defined to support LINUX on C6x targets)
+$(if $(C6X_UCLINUX_ROOT),,$(error C6X_UCLINUX_ROOT must be defined to support LINUX on C6x targets))
 endif
 
 CC=$(CGT6X_ROOT)/bin/cl6x
