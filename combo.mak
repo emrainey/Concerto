@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info #######################################################################)
 $(info TARGET_COMBO=$(TARGET_COMBO))
+endif
 TARGET_COMBO_WORDS := $(subst :,$(SPACE),$(TARGET_COMBO))
 TARGET_COMBO_COUNT := $(words $(TARGET_COMBO_WORDS))
 ifeq ($(SHOW_MAKEDEBUG),1)
@@ -125,7 +127,9 @@ $(info SCM_VERSION=$(SCM_VERSION))
 endif
 
 define concerto_include
-    $(info including $(dir $(1)))
+ifeq (1,$(SHOW_MAKEDEBUG))
+    $$(info including $(dir $(1)))
+endif
     include $(1)
 endef
 
