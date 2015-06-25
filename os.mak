@@ -73,4 +73,6 @@ PATH_CONCAT = $(subst $(SPACE),$(PATH_CAT),$(1))
 GAP:='%20'
 FIND-IN-PATH = $(sort $(foreach path,$(subst $(PATH_CAT),$(SPACE),$(subst $(SPACE),$(GAP),$(PATH))),$(wildcard $(path)$(PATH_DELIM)$(1))))
 
+ifeq ($(SHOW_MAKEDEBUG),1)
 $(info SHELL=$(SHELL))
+endif

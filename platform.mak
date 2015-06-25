@@ -46,7 +46,7 @@ else ifeq ($(TARGET_OS),CYGWIN)
     OBJ_EXT:=.o
     EXE_EXT:=.exe
     PLATFORM_LIBS := c pthread
-else ifeq ($(TARGET_OS).SYSBIOS)
+else ifeq ($(TARGET_OS),SYSBIOS)
     LIB_PRE:=lib
     LIB_EXT:=.a
     DSO_EXT:=.a

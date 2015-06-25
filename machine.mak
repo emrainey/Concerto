@@ -61,6 +61,11 @@ else ifeq ($($(1)_CPU),EVE)
     $(1)_FAMILY=EVE
     $(1)_ARCH=32
     $(1)_ENDIAN=LITTLE
+else ifeq ($($(1)_CPU),PRU)
+    HOST_PLATFORM=PC
+    $(1)_FAMILY=PRU
+    $(1)_ARCH=32
+    $(1)_ENDIAN=LITTLE
 endif
 endef
 
