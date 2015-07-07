@@ -98,7 +98,8 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
                        $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) \
                        $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
                        $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib))
-$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES) -meabi=5
+$(_MODULE)_SYMBOLS	:= $(foreach sym,$($(_MODULE)_DEFS),$(if $(word 2,$(subst =,$(SPACE),$(sym))), --defsym $(sym),--defsym $(sym)=1))
+$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES) -meabi=5 $($(_MODULE)_SYMBOLS)
 $(_MODULE)_LDFLAGS  := $($(_MODULE)_LOPT)
 $(_MODULE)_CPLDFLAGS := $(foreach ldf,$($(_MODULE)_LDFLAGS),-Wl,$(ldf))
 $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODULE)_COPT) $(CFLAGS)

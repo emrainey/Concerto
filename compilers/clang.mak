@@ -100,7 +100,8 @@ $(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
 					   $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
 					   $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib)) \
 					   $(foreach lib,$(PLATFORM_LIBS),-l$(lib))
-$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES)
+$(_MODULE)_SYMBOLS	:= $(foreach sym,$($(_MODULE)_DEFS),$(if $(word 2,$(subst =,$(SPACE),$(sym))), --defsym $(sym),--defsym $(sym)=1))
+$(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES) $($(_MODULE)_SYMBOLS)
 ifeq ($(HOST_OS),DARWIN)
 $(_MODULE)_LDFLAGS  := -arch $(TARGET_CPU)
 endif
