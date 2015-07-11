@@ -32,12 +32,22 @@ How to use it
 Top Level Makefile per project
 
     # Path to concerto install or use environment variable
-    CONCERTO_ROOT ?= concerto
+    CONCERTO_ROOT ?= ../concerto
     # [OPTIONAL] if DIRECTORIES is not specified concerto assumes "source"
     DIRECTORIES  := src docs
     # [OPTIONAL] BUILD_TARGET is used to reflect specific needs of your build system.
     # if not specified concerto's default target.mak is used instead
     BUILD_TARGET := $(abspath .)/target.mak
+    # This calls concerto
+    include $(CONCERTO_ROOT)/rules.mak
+
+How to auto-download if Concerto is not present
+    
+    # Path to concerto install or use environment variable
+    CONCERTO_ROOT ?= ../concerto
+    # [OPTIONAL] check to see if the path really exists to CONCERTO_ROOT, if it does not, execute a shell command to pull it down with git
+    $(if $(realpath $(CONCERTO_ROOT)),,$(call $($(shell git clone http://github.com/emrainey/Concerto $(CONCERTO_ROOT)))))
+    ...
     # This calls concerto
     include $(CONCERTO_ROOT)/rules.mak
 
