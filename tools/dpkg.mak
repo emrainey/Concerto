@@ -118,13 +118,29 @@ $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $
 	$(Q)echo "Package: $($(_MODULE)_PKG_NAME)" > $$@
 	$(Q)cat $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) >> $$@
 	$(Q)echo "Architecture: $(DEB_BUILD_ARCH)" >> $$@
+	$(Q)echo "Provides: $($(_MODULE)_TARGET)" >> $$@
 
 build:: $($(_MODULE)_BIN)
 
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS)
 	$(Q)find $($(_MODULE)_ODIR) -name ".gitignore" -exec rm {} \;
 	$(Q)dpkg --build $($(_MODULE)_ODIR) $$@
-	
+
+TESTABLE_MODULES += $(_MODULE)
+TESTABLE_TARGETS += $($(_MODULE)_TARGET)_test
+CONCERTO_TARGETS += $($(_MODULE)_TARGET)_test
+CONCERTO_TARGETS += $($(_MODULE)_TARGET)_install
+CONCERTO_TARGETS += $($(_MODULE)_TARGET)_remove
+.PHONY: $($(_MODULE)_TARGET)_test
+$($(_MODULE)_TARGET)_test: $($(_MODULE)_BIN)
+	$(Q)sudo dpkg --dry-run -i $($(_MODULE)_BIN)
+
+$($(_MODULE)_TARGET)_install: $($(_MODULE)_BIN)
+	$(Q)sudo dpkg -i $$^
+
+$($(_MODULE)_TARGET)_remove: $($(_MODULE)_BIN)
+	$(Q)sudo dpkg -r $($(_MODULE)_TARGET)
+
 endef
 
 else

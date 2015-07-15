@@ -115,7 +115,7 @@ include $(CONCERTO_ROOT)/combo_filters.mak
 $(foreach TARGET_COMBO,$(TARGET_COMBOS),$(eval $(call CONCERTO_BUILD)))
 
 ifndef NO_TARGETS
-.PHONY: all dir depend build install uninstall clean clean_target outputs modules targets scrub vars test docs clean_docs pdf
+.PHONY: all dir depend build install uninstall clean clean_target outputs modules targets scrub vars test tests docs clean_docs pdf
 
 depend::
 
@@ -134,8 +134,8 @@ modules::
 	$(foreach mod,$(MODULES),$(info MODULES+=$(mod)))
 
 targets::
-	$(PRINT) Concerto targets are the names of the binaries generated. 
-	$(PRINT) Targets are invokable makefile rules. However, each combo version will be built.
+	$(info Concerto targets are the names of the binaries generated.) 
+	$(info Targets are invokable makefile rules. However, each combo version will be built.)
 	$(foreach target,$(CONCERTO_TARGETS),$(info CONCERTO_TARGETS+=$(target)))
 
 scrub::
@@ -149,6 +149,10 @@ vars:: $(foreach mod,$(MODULES),$(mod)_vars)
 	$(PRINT) HOST_OS=$(HOST_OS)
 	$(PRINT) MAKEFILE_LIST=$(MAKEFILE_LIST)
 	$(PRINT) TARGET_MAKEFILES=$(TARGET_MAKEFILES)
+
+tests::
+	$(info All testable modules:)
+	$(foreach mod,$(TESTABLE_MODULES),$(info $(mod)_test))
 
 test:: $(foreach mod,$(TESTABLE_MODULES),$(mod)_test)
 
@@ -197,6 +201,8 @@ help:
 	$(PRINT) " $$ $(MAKE) todo"
 	$(PRINT) " # Shows any source lines which has a bug tag" 
 	$(PRINT) " $$ $(MAKE) bugs"
+	$(PRINT) " # Show any test targets which can be called"
+	$(PRINT) " $$ $(MAKE) tests"
 	$(PRINT)
 	$(PRINT) "Concerto Environment Variables (can be passed on command line too)"
 	$(PRINT) "BUILD_DEBUG=1 - sets SHOW_COMMANDS and SHOW_MAKEDEBUG" 
