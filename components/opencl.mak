@@ -42,6 +42,9 @@ ifeq ($(USE_OPENCL),true)
     endif
     
     # OpenCL-Environment Defines
+    CL_USER_DEVICE_COUNT ?= 1
+    CL_USER_DEVICE_TYPE ?= all
+    KDIR ?= kernels
     ifeq ($(HOST_OS),CYGWIN)
         DEFS += KDIR="\"$(KDIR)\"" CL_USER_DEVICE_COUNT=$(CL_USER_DEVICE_COUNT) CL_USER_DEVICE_TYPE="\"$(CL_USER_DEVICE_TYPE)\""
     else ifeq ($(HOST_OS),Windows_NT)

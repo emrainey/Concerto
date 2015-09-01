@@ -25,7 +25,10 @@ ifeq ($(USE_OPENCV),true)
         SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS))
         DEFS += USE_OPENCV
     else ifeq ($(TARGET_OS),DARWIN)
-        SYS_SHARED_LIBS += opencv_core opencv_highgui opencv_video opencv_features2d
+    	OPENCV_ROOT ?= ../opencv
+        SYS_SHARED_LIBS += $(addprefix opencv_, calib3d contrib core features2d flann highgui imgproc legacy ml objdetect ocl photo stitching superres video videostab)
         DEFS += USE_OPENCV
+        SYSIDIRS += $(OPENCV_ROOT)/include
+        SYSLDIRS += $(OPENCV_ROOT)/build/lib
     endif
 endif
