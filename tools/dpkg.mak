@@ -70,51 +70,55 @@ $(_MODULE)_PKG_DEPS:=$(foreach dep,$($(_MODULE)_PKG_DEPS),$(if $(notdir $(dep)),
 # Remove .gitignore files from list
 $(_MODULE)_PKG_DEPS:=$(filter-out */.gitignore,$($(_MODULE)_PKG_DEPS))
 
-ifeq ($(SHOW_MAKEDEBUG),1)
+# If we use OBJS, then the .gitignore dependencies will be added by the prelude
+#$(_MODULE)_OBJS := $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS)
+
+ifeq ($(SHOW_PKGDEBUG),1)
 $(info Dependencies for $(_MODULE))
-$(foreach dep,$($(_MODULE)_PKG_DEPS),$(info $(SPACE)$(SPACE)$(SPACE)$(SPACE)$(dep)))
-endif
-
-$(_MODULE)_OBJS := $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS)
-
-ifeq ($(SHOW_MAKEDEBUG),1)
-$(info $(_MODULE)_OBJS=$($(_MODULE)_OBJS))
+$(foreach obj,$($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS),$(info $(SPACE)$(SPACE)$(SPACE)$(SPACE)$(obj)))
 endif
 
 define $(_MODULE)_PACKAGE
 
 $(foreach file,$($(_MODULE)_FILES),
-$($(_MODULE)_PKG_FILE)/$(notdir $(file)): $(HOST_ROOT)/$($(_MODULE)_FILE_PATH)/$(notdir $(file)) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_FILE)/.gitignore
+$($(_MODULE)_PKG_FILE)/$(notdir $(file)): $(HOST_ROOT)/$($(_MODULE)_FILE_PATH)/$(notdir $(file)) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) 
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_STATIC_LIBS),
-$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_LIB)/.gitignore
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
-$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_LIB)/.gitignore
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
 $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)
-$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_LIB)/.gitignore
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach bin,$($(_MODULE)_BINS),
-$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT): $($(_MODULE)_TDIR)/$(bin)$(EXE_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_BIN)/.gitignore
+$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT): $($(_MODULE)_TDIR)/$(bin)$(EXE_EXT) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
 $(foreach inc,$($(_MODULE)_INCS),
-$($(_MODULE)_PKG_INC)/$(notdir $(inc)): $(inc) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_INC)/.gitignore
+$($(_MODULE)_PKG_INC)/$(notdir $(inc)): $(inc) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
 
-$($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) $($(_MODULE)_PKG_CFG)/.gitignore
+$($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG): $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)echo "Package: $($(_MODULE)_PKG_NAME)" > $$@
 	$(Q)cat $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) >> $$@
 	$(Q)echo "Architecture: $(DEB_BUILD_ARCH)" >> $$@
@@ -122,8 +126,8 @@ $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) : $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $
 
 build:: $($(_MODULE)_BIN)
 
-$($(_MODULE)_BIN): $($(_MODULE)_OBJS)
-	$(Q)find $($(_MODULE)_ODIR) -name ".gitignore" -exec rm {} \;
+$($(_MODULE)_BIN): $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS)
+	-$(Q)find $($(_MODULE)_ODIR) -name ".gitignore" -exec rm {} \;
 	$(Q)dpkg --build $($(_MODULE)_ODIR) $$@
 
 # Only create test/install/remove from environment, commandline or overrides

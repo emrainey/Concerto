@@ -24,12 +24,12 @@ TOUCH    := type NUL >
 INSTALL  := copy /Y /Z /V
 MKDIR    := mkdir
 CAT      := type
-QUIET 	 := 2>NUL
+QUIET    := 2>NUL
 REDIR    := 2>&1 >
 else # Bash variants
 CLEAN    := rm -f
 CLEANDIR := rm -rf
-COPY     := cp -f
+COPY     := cp -fp
 PRINT    := @echo
 SET_RW   := chmod a+rw
 SET_EXEC := chmod a+x
