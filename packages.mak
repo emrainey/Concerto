@@ -1,5 +1,5 @@
 
-ifeq ($(TARGET_OS),LINUX)
+ifeq ($(filter-out DARWIN LINUX,$(TARGET_OS)),)
 # Packages will be routed to pkg-config (checked only once)
 PKG_PATH ?= $(strip $(shell which pkg-config))
 #$(info PKG_PATH=$(PKG_PATH))
