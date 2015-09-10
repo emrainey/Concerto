@@ -21,6 +21,7 @@ endif
 ifneq ($(CHECK_DPKG),)
 
 PKG_EXT := .deb
+PKG_SCRIPTS := preinst postinst prerm postrm
 
 VARS=$(shell "dpkg-architecture")
 $(foreach var,$(VARS),$(if $(findstring DEB_BUILD_ARCH,$(var)),$(eval $(var))))
@@ -32,6 +33,7 @@ $(_MODULE)_PKG         := $($(_MODULE)_PKG_NAME)$(PKG_EXT)
 $(_MODULE)_BIN         := $($(_MODULE)_TDIR)/$($(_MODULE)_PKG)
 $(_MODULE)_FILE_PATH   := $(FILE_PATH)
 $(_MODULE)_FILES       := $(FILES)
+$(_MODULE)_SCRIPTS     := $(notdir $(wildcard $(foreach scr,$(PKG_SCRIPTS),$($(_MODULE)_SDIR)/$(scr))))
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info $(_MODULE)_PKG_FLDR=$($(_MODULE)_PKG_FLDR))
@@ -62,7 +64,8 @@ $(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_L
                          $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT)) \
                          $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT)) \
                          $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc))) \
-                         $(foreach file,$($(_MODULE)_FILES),$($(_MODULE)_PKG_FILE)/$(notdir $(file)))
+                         $(foreach file,$($(_MODULE)_FILES),$($(_MODULE)_PKG_FILE)/$(notdir $(file))) \
+                         $(foreach scr,$($(_MODULE)_SCRIPTS),$($(_MODULE)_PKG_CFG)/$(notdir $(scr)))
 
 # Remove empty folders from list
 $(_MODULE)_PKG_DEPS:=$(foreach dep,$($(_MODULE)_PKG_DEPS),$(if $(notdir $(dep)),$(dep),))
@@ -79,6 +82,12 @@ $(foreach obj,$($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG) $($(_MODULE)_PKG_DEPS),$(i
 endif
 
 define $(_MODULE)_PACKAGE
+
+$(foreach script,$($(_MODULE)_SCRIPTS),
+$($(_MODULE)_PKG_CFG)/$(script): $($(_MODULE)_SDIR)/$(script)
+	$(Q)$(MKDIR) $$(dir $$@)
+	$(Q)$(COPY) $$< $$@
+)
 
 $(foreach file,$($(_MODULE)_FILES),
 $($(_MODULE)_PKG_FILE)/$(notdir $(file)): $(HOST_ROOT)/$($(_MODULE)_FILE_PATH)/$(notdir $(file)) $($(_MODULE)_SDIR)/$(SUBMAKEFILE) 
