@@ -117,9 +117,6 @@ $(_MODULE)_CFLAGS += $(if $($(_MODULE)_COMPILER_OPT),-Xcompiler=$(subst $(SPACE)
 # COMMANDS
 ###################################################
 
-$(_MODULE)_LN_DSO	 := $(LINK) $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_BIN)
-$(_MODULE)_LN_INST_DSO:= $(LINK) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT).$($(_MODULE)_VERSION) $($(_MODULE)_INSTALL_LIB)/$($(_MODULE)_OUT)
-
 $(_MODULE)_LINK_LIB   := $(NVCC) --lib $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) -o $($(_MODULE)_BIN) 
 $(_MODULE)_LINK_DSO   := $(NVCC) --shared $($(_MODULE)_LDFLAGS) \
 	-Xlinker=-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) \

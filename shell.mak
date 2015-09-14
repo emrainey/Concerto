@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ifeq ($(HOST_OS),Windows_NT) # SHELL is cmd.exe
+CD       := cd
 CLEAN    := del /Q
 CLEANDIR := rmdir /Q /S
 COPY     := copy /Y /Z /V
@@ -27,9 +28,10 @@ CAT      := type
 QUIET    := 2>NUL
 REDIR    := 2>&1 >
 else # Bash variants
+CD       := cd
 CLEAN    := rm -f
 CLEANDIR := rm -rf
-COPY     := cp -fp
+COPY     := cp -fa
 PRINT    := @echo
 SET_RW   := chmod a+rw
 SET_EXEC := chmod a+x
