@@ -60,7 +60,7 @@ endif
 
 # these package deps 
 $(_MODULE)_PKG_DEPS:= $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT)) \
-                         $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0) \
+                         $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).$($(_MODULE)_VERSION)) \
                          $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(LIB_EXT)) \
                          $(foreach bin,$($(_MODULE)_BINS),$($(_MODULE)_PKG_BIN)/$(bin)$(EXE_EXT)) \
                          $(foreach inc,$($(_MODULE)_INCS),$($(_MODULE)_PKG_INC)/$(notdir $(inc))) \
@@ -108,8 +108,8 @@ $($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT): $($(_MODULE)_TDIR)/$(LIB_PRE)$
 )
 
 $(foreach lib,$($(_MODULE)_SHARED_LIBS),
-$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)
-$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0: $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).1.0 $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
+$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).$($(_MODULE)_VERSION): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT)
+$($(_MODULE)_PKG_LIB)/$(LIB_PRE)$(lib)$(DSO_EXT).$($(_MODULE)_VERSION): $($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT).$($(_MODULE)_VERSION) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
 	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)$(COPY) $$< $$@
 )
@@ -129,6 +129,11 @@ $($(_MODULE)_PKG_INC)/$(notdir $(inc)): $(inc) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
 $($(_MODULE)_PKG_CFG)/$($(_MODULE)_CFG): $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) $($(_MODULE)_SDIR)/$(SUBMAKEFILE)
 	$(Q)$(MKDIR) $$(dir $$@)
 	$(Q)echo "Package: $($(_MODULE)_PKG_NAME)" > $$@
+ifdef $(_MODULE)_VERSION
+	$(Q)echo "Version: $($(_MODULE)_VERSION)" >> $$@
+else
+	$(Q)echo "Version: 1.0" >> $$@
+endif
 	$(Q)cat $($(_MODULE)_SDIR)/$($(_MODULE)_CFG) >> $$@
 	$(Q)echo "Architecture: $(DEB_BUILD_ARCH)" >> $$@
 	$(Q)echo "Provides: $($(_MODULE)_TARGET)" >> $$@
