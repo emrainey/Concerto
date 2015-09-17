@@ -27,7 +27,6 @@ ifeq ($(USE_OPENCV),true)
         # Remove opencv_ts as it has a PIC linking issue
         REMOVE_LIST := opencv_ts
         SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(OPENCV_DEPS)
-        endif
         DEFS += USE_OPENCV
     else ifeq ($(TARGET_OS),DARWIN)
         OPENCV_ROOT ?= ../opencv
