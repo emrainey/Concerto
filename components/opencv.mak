@@ -18,14 +18,17 @@ ifeq ($(USE_OPENCV),true)
     endif
 
     ifeq ($(HOST_OS),LINUX)
-        IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I opencv))
-        OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other opencv)))))
+        PKG_NAME := opencv
+        IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I $(PKG_NAME)))
+        LDIRS += $(subst -L,$(EMPTY),$(shell pkg-config --libs-only-L $(PKG_NAME)))
+        OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-l $(PKG_NAME))))))
         # Remove opencv_ts as it has a PIC linking issue
         REMOVE_LIST := opencv_ts
-        SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS))
+        SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other $(PKG_NAME)))
+        OPENCV_VERSION := $(shell pkg-config --modversion $(PKG_NAME))
         DEFS += USE_OPENCV
     else ifeq ($(TARGET_OS),DARWIN)
-    	OPENCV_ROOT ?= ../opencv
+        OPENCV_ROOT ?= ../opencv
         SYS_SHARED_LIBS += $(addprefix opencv_, calib3d contrib core features2d flann highgui imgproc legacy ml objdetect ocl photo stitching superres video videostab)
         DEFS += USE_OPENCV
         SYSIDIRS += $(OPENCV_ROOT)/include
