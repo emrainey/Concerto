@@ -21,11 +21,13 @@ ifeq ($(USE_OPENCV),true)
         PKG_NAME := opencv
         IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I $(PKG_NAME)))
         LDIRS += $(subst -L,$(EMPTY),$(shell pkg-config --libs-only-L $(PKG_NAME)))
+        OPENCV_VERSION := $(shell pkg-config --modversion $(PKG_NAME))
         OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-l $(PKG_NAME))))))
+        OPENCV_DEPS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other $(PKG_NAME))))))
         # Remove opencv_ts as it has a PIC linking issue
         REMOVE_LIST := opencv_ts
-        SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other $(PKG_NAME)))
-        OPENCV_VERSION := $(shell pkg-config --modversion $(PKG_NAME))
+        SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(OPENCV_DEPS)
+        endif
         DEFS += USE_OPENCV
     else ifeq ($(TARGET_OS),DARWIN)
         OPENCV_ROOT ?= ../opencv
