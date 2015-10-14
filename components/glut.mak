@@ -13,9 +13,9 @@
 # limitations under the License.
 
 ifeq ($(USE_GLUT),true)
-        ifeq ($(SHOW_MAKEDEBUG),1)
-            $(info Enabled GLUT for $(_MODULE))
-        endif
+		ifeq ($(SHOW_MAKEDEBUG),1)
+			$(info Enabled GLUT for $(_MODULE))
+		endif
 	ifeq ($(HOST_OS),Wind	ows_NT)
 		ifeq ($(GLUT_HOME),)
 			$(error GLUT_HOME must be defined to use GLUT)
@@ -23,7 +23,7 @@ ifeq ($(USE_GLUT),true)
 		IDIRS += $(GLUT_HOME)/include
 		LDIRS += $(GLUT_HOME)/lib
 		ifeq ($(filter $(PLATFORM_LIBS),glu32 glut),)
-		    PLATFORM_LIBS += glut32 glut
+			PLATFORM_LIBS += glut32 glut
 		endif
 	else ifeq ($(HOST_OS),LINUX)
 		# User should install GLUT/Mesa via package system
