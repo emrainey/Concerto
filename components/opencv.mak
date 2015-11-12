@@ -25,14 +25,27 @@ ifeq ($(USE_OPENCV),true)
         OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-l $(PKG_NAME))))))
         OPENCV_DEPS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other $(PKG_NAME))))))
         # Remove opencv_ts as it has a PIC linking issue
-        REMOVE_LIST := opencv_ts
+        REMOVE_LIST := opencv_ts $(PLATFORM_LIBS)
         SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(OPENCV_DEPS)
         DEFS += USE_OPENCV
     else ifeq ($(TARGET_OS),DARWIN)
-        OPENCV_ROOT ?= ../opencv
-        SYS_SHARED_LIBS += $(addprefix opencv_, calib3d contrib core features2d flann highgui imgproc legacy ml objdetect ocl photo stitching superres video videostab)
-        DEFS += USE_OPENCV
-        SYSIDIRS += $(OPENCV_ROOT)/include
-        SYSLDIRS += $(OPENCV_ROOT)/build/lib
+        ifneq ($(OPENCV_ROOT),)
+            #OPENCV_ROOT ?= ../opencv
+            SYS_SHARED_LIBS += $(addprefix opencv_, calib3d contrib core features2d flann highgui imgproc legacy ml objdetect ocl photo stitching superres video videostab)
+            DEFS += USE_OPENCV
+            SYSIDIRS += $(OPENCV_ROOT)/include
+            SYSLDIRS += $(OPENCV_ROOT)/build/lib
+        else
+            PKG_NAME := opencv
+            IDIRS += $(subst -I,$(EMPTY),$(shell pkg-config --cflags-only-I $(PKG_NAME)))
+            LDIRS += $(subst -L,$(EMPTY),$(shell pkg-config --libs-only-L $(PKG_NAME)))
+            OPENCV_VERSION := $(shell pkg-config --modversion $(PKG_NAME))
+            OPENCV_LIBS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-l $(PKG_NAME))))))
+            OPENCV_DEPS := $(patsubst lib%,%,$(basename $(notdir $(subst -l,$(EMPTY),$(shell pkg-config --libs-only-other $(PKG_NAME))))))
+            # Remove opencv_ts as it has a PIC linking issue
+            REMOVE_LIST := opencv_ts $(PLATFORM_LIBS)
+            SYS_SHARED_LIBS += $(filter-out $(REMOVE_LIST),$(OPENCV_LIBS)) $(OPENCV_DEPS)
+            DEFS += USE_OPENCV
+        endif
     endif
 endif
