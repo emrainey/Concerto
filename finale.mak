@@ -115,7 +115,7 @@ LOGGING:=
 endif
 
 ifeq ($(HOST_COMPILER),GCC)
-    include $(CONCERTO_ROOT)/compilers/gcc.mak
+	include $(CONCERTO_ROOT)/compilers/gcc.mak
 else ifeq ($(HOST_COMPILER),CLANG)
 	include $(CONCERTO_ROOT)/compilers/clang.mak
 else ifeq ($(HOST_COMPILER),CL)
@@ -133,7 +133,7 @@ else ifeq ($(HOST_COMPILER),TMS470)
 else ifeq ($(HOST_COMPILER),TIARMCGT)
 	include $(CONCERTO_ROOT)/compilers/tiarmcgt.mak
 else ifeq ($(HOST_COMPILER),NVCC)
-    include $(CONCERTO_ROOT)/compilers/nvcc.mak
+	include $(CONCERTO_ROOT)/compilers/nvcc.mak
 else ifeq ($(HOST_COMPILER),)
 $(error HOST_COMPILER $(origin HOST_COMPILER))
 else ifeq ($(filter $(HOST_COMPILER),GCC CLANG CL RVCT CGT6X CGTPRU QCC TMS470 TIARMCGT NVCC),)
@@ -143,9 +143,9 @@ endif
 
 ifeq ($(NEEDS_INSTALL),1)
 ifeq ($(TARGET_OS),Windows_NT)
-    include $(CONCERTO_ROOT)/os/windows.mak
+	include $(CONCERTO_ROOT)/os/windows.mak
 else
-    include $(CONCERTO_ROOT)/os/posix.mak
+	include $(CONCERTO_ROOT)/os/posix.mak
 endif
 endif
 
@@ -161,6 +161,14 @@ SKIPBUILD:=
 ###################################################
 # RULES
 ###################################################
+
+.PHONY: $(_MODULE)_copy
+define $(_MODULE)_copy_op
+$(_MODULE)_copy::
+	# assume that $2 is a directory name
+	$(MKDIR) $(2) 
+	$(COPY) $(1) $(2)
+endef
 
 .PHONY: $(_MODULE)_output
 define $(_MODULE)_output_list
@@ -207,6 +215,7 @@ $(eval $(call $(_MODULE)_BUILD_LIB))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
+$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),)
 
 else ifeq ($($(_MODULE)_TYPE),exe)
 
@@ -220,6 +229,7 @@ $(eval $(call $(_MODULE)_BUILD_EXE))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
+$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/bin)),)
 
 else ifeq ($($(_MODULE)_TYPE),dsmo)
 
@@ -234,6 +244,7 @@ $(eval $(call $(_MODULE)_BUILD_DSO))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
+$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),)
 
 else ifeq ($($(_MODULE)_TYPE),objects)
 

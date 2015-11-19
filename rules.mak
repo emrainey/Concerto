@@ -150,6 +150,10 @@ vars:: $(foreach mod,$(MODULES),$(mod)_vars)
 	$(PRINT) MAKEFILE_LIST=$(MAKEFILE_LIST)
 	$(PRINT) TARGET_MAKEFILES=$(TARGET_MAKEFILES)
 
+ifneq ($(RELEASE_DIR),)
+release:: $(foreach mod,$(MODULES),$(mod)_copy)
+endif
+
 tests::
 	$(info All testable modules:)
 	$(foreach mod,$(TESTABLE_MODULES),$(info $(mod)_test))
@@ -158,6 +162,13 @@ test:: $(foreach mod,$(TESTABLE_MODULES),$(mod)_test)
 
 todo:
 	$(Q)fgrep -Rni TODO $(HOST_ROOT) --exclude-dir=.git \
+									 --exclude-dir=.svn \
+									 --exclude-dir=docs \
+									 --exclude-dir=$(BUILD_FOLDER) \
+									 --exclude-dir=$(BUILD_OUTPUT)
+
+fixme:
+	$(Q)fgrep -Rni FIXME $(HOST_ROOT) --exclude-dir=.git \
 									 --exclude-dir=.svn \
 									 --exclude-dir=docs \
 									 --exclude-dir=$(BUILD_FOLDER) \

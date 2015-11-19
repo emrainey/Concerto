@@ -39,23 +39,27 @@ ifeq ($(filter $(TARGET_OS),LINUX CYGWIN DARWIN NO_OS),)
 $(error TARGET_OS $(TARGET_OS) is not supported by this compiler)
 endif
 
+ifdef GCC_VER
+GCC_POSTFIX := -$(GCC_VER)
+endif
+
 ifneq ($(GCC_ROOT),)
-CC = $(GCC_ROOT)/bin/$(CROSS_COMPILE)gcc
-CP = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
+CC = $(GCC_ROOT)/bin/$(CROSS_COMPILE)gcc$(GCC_POSTFIX)
+CP = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++$(GCC_POSTFIX)
 AS = $(GCC_ROOT)/bin/$(CROSS_COMPILE)as
 AR = $(GCC_ROOT)/bin/$(CROSS_COMPILE)ar
-LD = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++
+LD = $(GCC_ROOT)/bin/$(CROSS_COMPILE)g++$(GCC_POSTFIX)
 else
 # distcc=yes allows for distributed builds
 ifeq ($(distcc),yes)
 CC = distcc
 else
-CC = $(CROSS_COMPILE)gcc
+CC = $(CROSS_COMPILE)gcc$(GCC_POSTFIX)
 endif
-CP = $(CROSS_COMPILE)g++
+CP = $(CROSS_COMPILE)g++$(GCC_POSTFIX)
 AS = $(CROSS_COMPILE)as
 AR = $(CROSS_COMPILE)ar
-LD = $(CROSS_COMPILE)g++
+LD = $(CROSS_COMPILE)g++$(GCC_POSTFIX)
 endif
 EXTS := .c .cc .cpp .cxx .C .CC .CPP .CXX .S .s .asm .ASM
 
