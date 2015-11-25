@@ -12,8 +12,8 @@ Concerto looks for sub-makefiles called concerto.mak in the directories (and the
 Build System Files:
 -------------------
 
-* `definitions.mak` - useful macros
-* `rules.mak` - internal top level file.
+* `definitions.mak` - useful macros for finding source files
+* `rules.mak` - internal top level file. Include this in your Makefile. 
 * `os.mak` - determines host os
 * `machine.mak` - determines host cpu
 * `target.mak` - determines target variables and build system include paths, variables. This can be replaced (see above).
@@ -22,11 +22,14 @@ Build System Files:
 * `compilers/*` - Compiler specific files
 * `os/*` - OS specific installing/removing rules
 * `tools/*` - tools specific rules.
-
+* `components/*` - contains rules to build with components that do not work well with standard package management tools like pkg-config
+* `shell.mak` - Contains shell macros per OS.
+* `combo.mak` and `combo_filters.mak` - contains rules to simulatenously build on multiple compilers. 
+* `packages.mak` - contains package management rules per OS.
 
 How to use it
 -------------------
-* Download or copy the concerto folder to somewhere on your build system from `git clone ssh://$USER@gitorious.design.ti.com:build-systems/concerto.git`
+* Download or copy the concerto folder to somewhere on your build system from `git clone https://github.com/emrainey/Concerto`
 * Create a Makefile at the top of you project consisting of the following:
 
 Top Level Makefile per project
@@ -38,7 +41,7 @@ Top Level Makefile per project
     # [OPTIONAL] BUILD_TARGET is used to reflect specific needs of your build system.
     # if not specified concerto's default target.mak is used instead
     BUILD_TARGET := $(abspath .)/target.mak
-    # This calls concerto
+    # [REQUIRED] This calls concerto
     include $(CONCERTO_ROOT)/rules.mak
 
 How to auto-download if Concerto is not present
@@ -79,7 +82,7 @@ A typical `concerto.mak` is shorter:
     include $(PRELUDE)
     TARGET=mytest
     TARGETTYPE=exe
-    SYS_STATIC_LIBS+=sosal
+    SYS_STATIC_LIBS+=some_system_lib
     CSOURCES=main.c
     include $(FINALE)
 
@@ -99,14 +102,14 @@ The following variables and macros are available for use in a `concerto.mak` fil
  + deb - A debian package (control file is required)
 * `SYS_SHARED_LIBS` - dynamic libraries for which no dependencies are generated (which implies that they are outside the build system).
 * `SYS_STATIC_LIBS` - static libraries for which no dependencies are generated (which implies that they are outside the build system). 
-* `SHARED_LIBS` - dynamic libraries for which dependencies are generated (which implies that they are intside the build system).
+* `SHARED_LIBS` - dynamic libraries for which dependencies are generated (which implies that they are inside the build system).
 * `STATIC_LIBS` - static libraries for which dependencies are generated (which implies that they are inside the build system).
 * `ASSEMBLY` - S files which must be in the same folder.
 * `CSOURCES` - C files which must be in the same folder.
 * `CPPSOURCES` - C++ files which must be in the same folder.
 * `JSOURCES` - Java files for Jar targets
 * `IDIRS` - include directories
-* `LDIRS` - library link path
+* `LDIRS` - library link paths
 * `DEFS` - #defines to pass to the compiler
 
 Useful Macros
@@ -117,7 +120,7 @@ Useful Macros
     # list of files with extension .ext that exist inside this module (including any sub-directories)
     $(call all-type-files,<ext>)
     # list of c files c that exist inside this module (including any sub-directories)
-    $(all-c-files)
+    $(call all-c-files)
     # list of c files c that exist in dir (including any sub-directories). dir is relative to the module directory
     $(call all-c-files-in,<dir>)
     
@@ -189,7 +192,7 @@ _project_folder_/
 + _Makefile_
 + include/
 + source/_any depth of folders_/_concerto.mak_
-+ out/$(TARGET_OS)/$(TARGET_CPU)/$(TARGET_BUILD)/_components_
++ out/$(TARGET_PLATFORM)/$(TARGET_CPU)/$(TARGET_OS)/$(TARGET_BUILD)/_components_
 
 Multiproject Builds:
 --------------------
