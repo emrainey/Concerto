@@ -163,11 +163,11 @@ SKIPBUILD:=
 ###################################################
 
 .PHONY: $(_MODULE)_copy
+# assume that $2 is a directory name
 define $(_MODULE)_copy_op
-$(_MODULE)_copy::
-	# assume that $2 is a directory name
-	$(MKDIR) $(2) 
-	$(COPY) $(1) $(2)
+$(_MODULE)_copy:: $(1)
+	$(Q)$(MKDIR) $(2) 
+	$(Q)$(COPY) $(1) $(2)
 endef
 
 .PHONY: $(_MODULE)_output
