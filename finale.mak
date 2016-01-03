@@ -187,11 +187,11 @@ $(_MODULE):: $($(_MODULE)_BIN)
 ifneq ($($(_MODULE)_TESTPRGM),)
 TESTABLE_MODULES += $(_MODULE)
 TESTABLE_TARGETS += $($(_MODULE)_TARGET)
-.PHONY: $($(_MODULE)_TARGET)_test
+.PHONY: $(_MODULE).test
 
 define $(_MODULE)_TESTCASE
-$($(_MODULE)_TARGET)_test:: $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM)
-	$(PRINT) Running $($(_MODULE)_TESTPRGM)
+$(_MODULE).test:: $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM)
+	$(PRINT) Running $($(_MODULE)_TESTPRGM) $($(_MODULE)_TESTOPTS)
 ifeq ($(HOST_OS),Windows_NT)
 	$(Q)cd $($(_MODULE)_TESTPATH) && PATH=$(PATH)\;$($(_MODULE)_TDIR) $($(_MODULE)_TDIR)/$($(_MODULE)_TESTPRGM) $($(_MODULE)_TESTOPTS)
 else

@@ -156,9 +156,9 @@ endif
 
 tests::
 	$(info All testable modules:)
-	$(foreach mod,$(TESTABLE_MODULES),$(info $(mod)_test))
+	$(foreach mod,$(TESTABLE_MODULES),$(info $(mod).test))
 
-test:: $(foreach mod,$(TESTABLE_MODULES),$(mod)_test)
+test:: $(foreach mod,$(TESTABLE_MODULES),$(mod).test)
 
 todo:
 	$(Q)fgrep -Rni TODO $(HOST_ROOT) --exclude-dir=.git \

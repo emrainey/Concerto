@@ -92,8 +92,8 @@ ifneq ($(strip $($(_MODULE)_ENTRY)),$(EMPTY))
 ENTRY                :=
 TESTABLE_MODULES     += $(_MODULE)
 define $(_MODULE)_JAVA_TEST
-.PHONY: $(_MODULE)_test
-$(_MODULE)_test: $($(_MODULE)_BIN)
+.PHONY: $(_MODULE).test
+$(_MODULE).test: $($(_MODULE)_BIN)
 	$(Q)CLASSPATH=$(TDIR) $(JAVA) -jar $($(_MODULE)_BIN)
 endef
 $(eval $(call $(_MODULE)_JAVA_TEST))
