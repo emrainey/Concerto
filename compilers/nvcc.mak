@@ -117,13 +117,13 @@ $(_MODULE)_CFLAGS += $(if $($(_MODULE)_COMPILER_OPT),-Xcompiler=$(subst $(SPACE)
 # COMMANDS
 ###################################################
 
-$(_MODULE)_LINK_LIB   := $(NVCC) --lib $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) -o $($(_MODULE)_BIN) 
-$(_MODULE)_LINK_DSO   := $(NVCC) --shared $($(_MODULE)_LDFLAGS) \
+$(_MODULE)_LINK_LIB   = $(NVCC) --lib $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) -o $($(_MODULE)_BIN) 
+$(_MODULE)_LINK_DSO   = $(NVCC) --shared $($(_MODULE)_LDFLAGS) \
 	-Xlinker=-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) \
 	-Xlinker=--whole-archive $($(_MODULE)_LIBRARIES) -lm -Xlinker=--no-whole-archive \
 	-o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) 
 	
-$(_MODULE)_LINK_EXE   := $(NVCC) $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) 
+$(_MODULE)_LINK_EXE   = $(NVCC) $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) $(addprefix -l,$1) -o $($(_MODULE)_BIN) 
 
 ###################################################
 # MACROS FOR COMPILING

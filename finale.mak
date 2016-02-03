@@ -33,8 +33,12 @@ endif
 
 ifeq ($(SHOW_MAKEDEBUG),1)
 $(info #### $(_MODULE) ########################################################)
-$(foreach mvar,$(sort $(_MODULE_VARS)),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
-$(foreach mvar,$(sort	 $(filter MODULE_%,$(.VARIABLES))),$(if $(value $(mvar)),$(info $(mvar)=$(value $(mvar)))))
+$(foreach mvar,$(sort $(_MODULE_VARS)),\
+	$(if $(value $(mvar)),\
+		$(info $(mvar)=$(value $(mvar)))))
+$(foreach mvar,$(sort $(filter MODULE_%,$(.VARIABLES))), \
+	$(if $(value $(mvar)),\
+		$(info $(mvar)=$(value $(mvar)))))
 endif
 
 $(_MODULE)_TARGET := $(TARGET)
@@ -46,6 +50,10 @@ $(_MODULE)_LDIRS += $(LDIRS) $($(TARGET_COMBO_NAME)_LDIRS) $(SYSLDIRS)
 
 # Add any additional libraries which are in this build system
 $(_MODULE)_STATIC_LIBS += $(STATIC_LIBS)
+$(if $(filter library,$(TARGETTYPE)),\
+	$(eval $(TARGET)_DEPENDENT_LIBS=$($(_MODULE)_STATIC_LIBS) \
+		$(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(lib)_DEPENDENT_LIBS) )) \
+	,)
 $(_MODULE)_SHARED_LIBS += $(SHARED_LIBS)
 $(_MODULE)_SYS_STATIC_LIBS += $(SYS_STATIC_LIBS)
 $(_MODULE)_SYS_SHARED_LIBS += $(SYS_SHARED_LIBS)
@@ -99,7 +107,7 @@ else ifeq ($($(_MODULE)_TYPE),doxygen)
 	include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
-# \todo add new build types here!
+# TODO add new build types here!
 endif
 
 ifeq ($(NEEDS_COMPILER),1)
@@ -166,7 +174,7 @@ SKIPBUILD:=
 # assume that $2 is a directory name
 define $(_MODULE)_copy_op
 $(_MODULE)_copy:: $(1)
-	$(Q)$(MKDIR) $(2) 
+	$(Q)$(MKDIR) $(2)
 	$(Q)$(COPY) $(1) $(2)
 endef
 
@@ -222,7 +230,7 @@ else ifeq ($($(_MODULE)_TYPE),exe)
 define $(_MODULE)_BUILD_EXE
 $($(_MODULE)_BIN): $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS) $($(_MODULE)_SHARED_LIBS) $($(_MODULE)_DEPS)
 	$(PRINT) Linking $$@
-	-$(Q)$(call $(_MODULE)_LINK_EXE) $(LOGGING)
+	-$(Q)$(call $(_MODULE)_LINK_EXE,$(call dependent-static-libs,$(_MODULE))) $(LOGGING)
 endef
 
 $(eval $(call $(_MODULE)_BUILD_EXE))

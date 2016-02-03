@@ -109,9 +109,9 @@ $(_MODULE)_CFLAGS   := -c $($(_MODULE)_INCLUDES) $($(_MODULE)_DEFINES) $($(_MODU
 ###################################################
 EXPORT_FLAG:=--export-dynamic
 
-$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared $(EXPORT_FLAG) -soname,$(notdir $($(_MODULE)_BIN)).1 --whole-archive $($(_MODULE)_LIBRARIES) --no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Map=$($(_MODULE)_MAP)
-$(_MODULE)_LINK_EXE   := $(CP) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)
+$(_MODULE)_LINK_LIB   = $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS) #$($(_MODULE)_STATIC_LIBS)
+$(_MODULE)_LINK_DSO   = $(LD) $($(_MODULE)_LDFLAGS) -shared $(EXPORT_FLAG) -soname,$(notdir $($(_MODULE)_BIN)).1 --whole-archive $($(_MODULE)_LIBRARIES) --no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Map=$($(_MODULE)_MAP)
+$(_MODULE)_LINK_EXE   = $(CP) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) $(addprefix -l,$1) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)
 
 ###################################################
 # MACROS FOR COMPILING

@@ -79,11 +79,11 @@ $(_MODULE)_BIN  := $($(_MODULE)_TDIR)/$($(_MODULE)_OUT)
 # for each extension types, convert the source file to an object file, remove duplicates and then remove anything that isn't an object
 $(_MODULE)_OBJS := $(filter %$(OBJ_EXT), $(sort $(foreach ext,$(EXTS),$($(_MODULE)_SRCS:%$(ext)=$($(_MODULE)_ODIR)/%$(OBJ_EXT)) )))
 # Redefine the local static libs and shared libs with REAL paths and pre/post-fixes
-$(_MODULE)_STATIC_LIBS := $(foreach lib,$(STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
-$(_MODULE)_SHARED_LIBS := $(foreach lib,$(SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
+$(_MODULE)_STATIC_LIBS := $(foreach lib,$($(_MODULE)_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS := $(foreach lib,$($(_MODULE)_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 ifeq ($(BUILD_MULTI_PROJECT),1)
-$(_MODULE)_STATIC_LIBS += $(foreach lib,$(SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
-$(_MODULE)_SHARED_LIBS += $(foreach lib,$(SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
+$(_MODULE)_STATIC_LIBS += $(foreach lib,$($(_MODULE)_SYS_STATIC_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(LIB_EXT))
+$(_MODULE)_SHARED_LIBS += $(foreach lib,$($(_MODULE)_SYS_SHARED_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 $(_MODULE)_PLATFORM_LIBS := $(foreach lib,$(PLATFORM_LIBS),$($(_MODULE)_TDIR)/$(LIB_PRE)$(lib)$(DSO_EXT))
 else
 $(_MODULE)_PLATFORM_LIBS := $(PLATFORM_LIBS)
@@ -142,14 +142,11 @@ $(_MODULE)_COPT += -mcpu=cortex-a15
 endif
 
 $(_MODULE)_MAP      := $($(_MODULE)_BIN).map
-$(_MODULE)_INCLUDES := $(foreach inc,$($(_MODULE)_IDIRS),-I$(inc))
-$(_MODULE)_DEFINES  := $(foreach def,$($(_MODULE)_DEFS),-D$(def))
-$(_MODULE)_LIBRARIES:= $(foreach ldir,$($(_MODULE)_LDIRS),-L$(ldir)) \
-					   $(foreach lib,$(STATIC_LIBS),-l$(lib)) \
-					   $(foreach lib,$(SYS_STATIC_LIBS),-l$(lib)) \
-					   $(foreach lib,$(SHARED_LIBS),-l$(lib)) \
-					   $(foreach lib,$(SYS_SHARED_LIBS),-l$(lib)) \
-					   $(foreach lib,$(PLATFORM_LIBS),-l$(lib))
+$(_MODULE)_INCLUDES := $(addprefix -I,$($(_MODULE)_IDIRS))
+$(_MODULE)_DEFINES  := $(addprefix -D,$($(_MODULE)_DEFS))
+$(_MODULE)_LIBRARIES:= $(addprefix -L,$($(_MODULE)_LDIRS)) \
+					   $(addprefix -l,$(STATIC_LIBS) $(SYS_STATIC_LIBS) \
+									  $(SHARED_LIBS) $(SYS_SHARED_LIBS) $(PLATFORM_LIBS))
 $(_MODULE)_SYMBOLS	:= $(foreach sym,$($(_MODULE)_DEFS),$(if $(word 2,$(subst =,$(SPACE),$(sym))), --defsym $(sym),--defsym $(sym)=1))
 $(_MODULE)_AFLAGS   += $($(_MODULE)_INCLUDES) $($(_MODULE)_SYMBOLS)
 ifeq ($(HOST_OS),DARWIN)
@@ -170,13 +167,13 @@ EXPORT_FLAG:=--export-all-symbols
 EXPORTER   :=
 endif
 
-$(_MODULE)_LINK_LIB   := $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS)
+$(_MODULE)_LINK_LIB   = $(AR) -rscu $($(_MODULE)_BIN) $($(_MODULE)_OBJS)
 ifeq ($(HOST_OS),DARWIN)
-$(_MODULE)_LINK_DSO   := $(LD) -shared $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
-$(_MODULE)_LINK_EXE   := $(LD) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN)
+$(_MODULE)_LINK_DSO   = $(LD) -shared $($(_MODULE)_LDFLAGS) -all_load $($(_MODULE)_LIBRARIES) -lm -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS)
+$(_MODULE)_LINK_EXE   = $(LD) -rdynamic $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) $(addprefix -l,$1) -o $($(_MODULE)_BIN)
 else
-$(_MODULE)_LINK_DSO   := $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) -Wl,-Map=$($(_MODULE)_MAP)
-$(_MODULE)_LINK_EXE   := $(LD) $(EXPORTER) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)
+$(_MODULE)_LINK_DSO   = $(LD) $($(_MODULE)_LDFLAGS) -shared -Wl,$(EXPORT_FLAG) -Wl,-soname,$(notdir $($(_MODULE)_BIN)).$($(_MODULE)_VERSION) $($(_MODULE)_OBJS) -Wl,--whole-archive $($(_MODULE)_LIBRARIES) -lm -Wl,--no-whole-archive -o $($(_MODULE)_BIN).$($(_MODULE)_VERSION) -Wl,-Map=$($(_MODULE)_MAP)
+$(_MODULE)_LINK_EXE   = $(LD) $(EXPORTER) -Wl,--cref $($(_MODULE)_CPLDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) $(addprefix -l,$1) -o $($(_MODULE)_BIN) -Wl,-Map=$($(_MODULE)_MAP)
 endif
 
 ###################################################
