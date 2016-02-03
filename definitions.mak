@@ -46,3 +46,14 @@ all-c-files-in    = $(call all-type-files-in,*.c,$(1))
 all-cpp-files-in  = $(call all-type-files-in,*.cpp,$(1))
 all-h-files-in    = $(call all-type-files-in,*.h,$(1))
 all-S-files-in    = $(call all-type-files-in,*.S,$(1))
+
+ifeq ($(HOST_OS),Windows_NT)
+strip-name-lib = $(basename $(notdir $1))
+else
+strip-name-lib = $(patsubst $(LIB_PRE)%,%,$(basename $(notdir $1)))
+endif
+
+dependent-static-libs = \
+	$(foreach lib,$($1_STATIC_LIBS),\
+		$($(call strip-name-lib,$(lib))_DEPENDENT_LIBS) \
+	)

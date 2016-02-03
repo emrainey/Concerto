@@ -111,8 +111,8 @@ $(_MODULE)_LDFLAGS  := $($(_MODULE)_CFLAGS) -z --warn_sections --reread_libs --r
 # COMMANDS
 ###################################################
 
-$(_MODULE)_LINK_LIB   := $(call PATH_CONV,$(AR) ru2 $($(_MODULE)_BIN) $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS))
-$(_MODULE)_LINK_EXE   := $(call PATH_CONV,$(LD) $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) --output_file=$($(_MODULE)_BIN) --map_file=$($(_MODULE)_MAP))
+$(_MODULE)_LINK_LIB   = $(call PATH_CONV,$(AR) ru2 $($(_MODULE)_BIN) $($(_MODULE)_OBJS) $($(_MODULE)_STATIC_LIBS))
+$(_MODULE)_LINK_EXE   = $(call PATH_CONV,$(LD) $($(_MODULE)_LDFLAGS) $($(_MODULE)_OBJS) $($(_MODULE)_LIBRARIES) $(if $1,$(foreach lib,$1,--library=$(LIB_PRE)$(lib)$(LIB_EXT))) --output_file=$($(_MODULE)_BIN) --map_file=$($(_MODULE)_MAP))
 
 ###################################################
 # MACROS FOR COMPILING
