@@ -31,16 +31,11 @@ ifeq ($(USE_CUDA),true)
         endif
         DEFS += USE_CUDA __CUDA_API_VERSION=0x6000
     else ifeq ($(HOST_OS),LINUX)
-        # User should install NVIDIA SDK
-        ifeq ($(CUDA_ROOT),)
-            ifneq ($(wildcard /usr/local/cuda/.*),)
-                CUDA_ROOT := /usr/local/cuda
-            else
-                $(info CUDA_ROOT must be defined to use CUDA)
-                SKIPBUILD := 1
-            endif
-	else
-	    ifeq ($(HAS_CUDA),true)
+        # User should install NVIDIA SDK, but assume the default location
+        CUDA_ROOT ?= $(wildcard /usr/local/cuda)
+        $(info CUDA_ROOT=$(CUDA_ROOT))
+        ifneq ($(CUDA_ROOT),)
+            ifeq ($(HAS_CUDA),true)
                 OLD_COMPILER := $(strip $(HOST_COMPILER))
                 HOST_COMPILER := NVCC
             endif
@@ -50,6 +45,9 @@ ifeq ($(USE_CUDA),true)
                 SYS_SHARED_LIBS += $(CUDA_LIBS)
             endif
             DEFS += USE_CUDA
+        else
+            $(info CUDA_ROOT must be defined to use CUDA)
+            SKIPBUILD := 1
         endif
     else ifeq ($(HOST_OS),DARWIN)
         # User should have XCode install CUDA
