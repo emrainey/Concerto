@@ -108,9 +108,9 @@ $(_MODULE)_CFLAGS += --target-cpu-architecture=ARM
 else ifeq ($(TARGET_FAMILY),X86)
 $(_MODULE)_CFLAGS += --target-cpu-architecture=X86
 endif
-ifeq ($(TARGET_OS),LINUX)
-$(_MODULE)_CFLAGS += --target-os-variant=Linux
-endif
+#ifeq ($(TARGET_OS),LINUX)
+#$(_MODULE)_CFLAGS += --target-os-variant=Linux
+#endif
 $(_MODULE)_CFLAGS += $(if $($(_MODULE)_COMPILER_OPT),-Xcompiler=$(subst $(SPACE),$(COMMA),$($(_MODULE)_COMPILER_OPT))) $(CUFLAGS)
 
 ###################################################
