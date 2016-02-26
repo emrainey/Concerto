@@ -39,17 +39,18 @@ ifeq ($(USE_CUDA),true)
                 $(info CUDA_ROOT must be defined to use CUDA)
                 SKIPBUILD := 1
             endif
+	else
+	    ifeq ($(HAS_CUDA),true)
+                OLD_COMPILER := $(strip $(HOST_COMPILER))
+                HOST_COMPILER := NVCC
+            endif
+            IDIRS += $(CUDA_ROOT)/include
+            LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
+            ifeq ($(filter $(PLATFORM_LIBS),$(CUDA_LIBS)),)
+                SYS_SHARED_LIBS += $(CUDA_LIBS)
+            endif
+            DEFS += USE_CUDA
         endif
-        ifneq ($(HAS_CUDA),)
-            OLD_COMPILER := $(strip $(HOST_COMPILER))
-            HOST_COMPILER := NVCC
-        endif
-        IDIRS += $(CUDA_ROOT)/include
-        LDIRS += $(CUDA_ROOT)/lib $(CUDA_ROOT)/lib64
-        ifeq ($(filter $(PLATFORM_LIBS),$(CUDA_LIBS)),)
-            SYS_SHARED_LIBS += $(CUDA_LIBS)
-        endif
-        DEFS += USE_CUDA
     else ifeq ($(HOST_OS),DARWIN)
         # User should have XCode install CUDA
         $(_MODULE)_FRAMEWORKS += -framework CUDA
