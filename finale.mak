@@ -217,7 +217,9 @@ $(eval $(call $(_MODULE)_BUILD_LIB))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
-$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),)
+$(if $($(_MODULE)_BIN), \
+	$(if $(RELEASE_DIR), \
+		$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),))
 
 else ifeq ($($(_MODULE)_TYPE),exe)
 
@@ -231,7 +233,9 @@ $(eval $(call $(_MODULE)_BUILD_EXE))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
-$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/bin)),)
+$(if $($(_MODULE)_BIN), \
+	$(if $(RELEASE_DIR), \
+		$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/bin)),))
 
 else ifeq ($($(_MODULE)_TYPE),dsmo)
 
@@ -246,7 +250,9 @@ $(eval $(call $(_MODULE)_BUILD_DSO))
 $(eval $(call $(_MODULE)_INSTALL))
 $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
-$(if $(RELEASE_DIR),$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),)
+$(if $($(_MODULE)_BIN), \
+	$(if $(RELEASE_DIR), \
+		$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),))
 
 else ifeq ($($(_MODULE)_TYPE),objects)
 
