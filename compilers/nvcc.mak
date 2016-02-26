@@ -137,18 +137,22 @@ define $(_MODULE)_COMPILE_TOOLS
 $(ODIR)/%.dep: $(SDIR)/%.c $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
+	-include $$@
 
 $(ODIR)/%.dep: $(SDIR)/%.cu $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
+	-include $$@
 
 $(ODIR)/%.dep: $(SDIR)/%.cpp $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
+	-include $$@
 
 $(ODIR)/%.dep: $(SDIR)/%.cc $(SDIR)/$(SUBMAKEFILE) $(ODIR)/.gitignore
 	@echo [NVCC] Dependencies for $$(notdir $$<)
 	$(Q)$(NVCC) --generate-dependencies $($(_MODULE)_INCLUDES) $$< > $$@
+	-include $$@
 
 $(ODIR)/%$(OBJ_EXT): $(SDIR)/%.c $(ODIR)/%.dep $($(_MODULE)_DEP_HEADERS) $(SDIR)/$(SUBMAKEFILE)
 	@echo [NVCC] Compiling C99 $$(notdir $$<)
