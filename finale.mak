@@ -107,13 +107,9 @@ else ifeq ($($(_MODULE)_TYPE),doxygen)
 	include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
-<<<<<<< 9d1de8b2479955a356a780f0bbcf653c19426040
 else
 $(error Unknown module type $($(_MODULE)_TYPE))
 # \todo add new build types here!
-=======
-# TODO add new build types here!
->>>>>>> [LIBS] Now when your dependent static lib depends on another static lib, you will to.
 endif
 
 ifeq ($(NEEDS_COMPILER),1)
