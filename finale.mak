@@ -260,6 +260,7 @@ $(eval $(call $(_MODULE)_BUILD))
 $(eval $(call $(_MODULE)_UNINSTALL))
 $(if $($(_MODULE)_BIN), \
 	$(if $(RELEASE_DIR), \
+		$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN).$($(_MODULE)_VERSION), $(RELEASE_DIR)/lib)) \
 		$(eval $(call $(_MODULE)_copy_op, $($(_MODULE)_BIN), $(RELEASE_DIR)/lib)),))
 
 else ifeq ($($(_MODULE)_TYPE),objects)
