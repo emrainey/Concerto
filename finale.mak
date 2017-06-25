@@ -19,12 +19,12 @@ else ifeq ($(VERSION),)
 VERSION := 1.0
 endif
 
--include $(CONCERTO_ROOT)/components/sdl.mak
--include $(CONCERTO_ROOT)/components/glut.mak
--include $(CONCERTO_ROOT)/components/cuda.mak # This may change the compiler
--include $(CONCERTO_ROOT)/components/opencl.mak
--include $(CONCERTO_ROOT)/components/openmp.mak
--include $(CONCERTO_ROOT)/components/opencv.mak
+POST_MODULE_PLUGINS:=$(call rwildcard,$(CONCERTO_ROOT)/components/post-module-plugins/,*.mak)
+ifeq ($(SHOW_MAKEDEBUG),1)
+$(info POST_MODULE_PLUGINS=$(POST_MODULE_PLUGINS))
+endif
+-include $(POST_MODULE_PLUGINS)
+
 -include $(CONCERTO_ROOT)/packages.mak
 
 # Users may use the new syntax of all variables starting with "MODULE_" but may not quite
@@ -108,7 +108,7 @@ else ifeq ($($(_MODULE)_TYPE),doxygen)
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
 else
-$(error Unknown module type $($(_MODULE)_TYPE))
+$(error Unknown module type $($(_MODULE)_TYPE) from $(THIS_MAKEFILE))
 # \todo add new build types here!
 endif
 

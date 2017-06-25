@@ -137,3 +137,7 @@ ODIR := $($(_MODULE)_ODIR)
 
 # Pull in the definitions which will be redefined for this makefile
 include $(CONCERTO_ROOT)/definitions.mak
+
+# Load any pre module plugins
+PRE_MODULE_PLUGINS:=$(call rwildcard,$(CONCERTO_ROOT)/components/pre-module-plugins/,*.mak)
+-include $(PRE_MODULE_PLUGINS)
