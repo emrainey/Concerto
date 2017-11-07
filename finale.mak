@@ -107,6 +107,9 @@ else ifeq ($($(_MODULE)_TYPE),doxygen)
 	include $(CONCERTO_ROOT)/tools/doxygen.mak
 else ifeq ($($(_MODULE)_TYPE),latex)
 	include $(CONCERTO_ROOT)/tools/latex.mak
+else ifeq ($($(_MODULE)_TYPE),prebuilt)
+	NEEDS_COMPILER=0
+	NEEDS_INSTALL=1
 else
 $(error Unknown module type $($(_MODULE)_TYPE) from $(THIS_MAKEFILE))
 # \todo add new build types here!
